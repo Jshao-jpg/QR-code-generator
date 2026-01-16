@@ -712,13 +712,13 @@ body::before {
 }
 
 .contact-info a {
-    color: var(--primary-blue-light);
+    color: var(--secondary-purple-light);
     text-decoration: none;
     transition: color var(--transition-fast);
 }
 
 .contact-info a:hover {
-    color: var(--primary-blue);
+    color: var(--secondary-purple);
     text-decoration: underline;
 }
 
