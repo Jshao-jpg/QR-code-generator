@@ -118,9 +118,9 @@ function createDnRowHTML() {
     return `
         <tr>
             <td class="row-num">1</td>
-            <td><input type="text" class="table-input dn-no" placeholder="DN20250418001"></td>
-            <td><input type="text" class="table-input vendor-id" placeholder="7016"></td>
-            <td><input type="text" class="table-input po-no" placeholder="263275"></td>
+            <td><input type="text" class="table-input dn-no" placeholder="如DN20250418001"></td>
+            <td><input type="text" class="table-input vendor-id" placeholder="如7016"></td>
+            <td><input type="text" class="table-input po-no" placeholder="如263275"></td>
             <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
             <td class="action-cell">
                 <button class="btn-icon download-row" title="下载" disabled>
@@ -253,11 +253,11 @@ function createDetailRowHTML() {
     return `
         <tr>
             <td class="row-num">1</td>
-            <td><input type="text" class="table-input full-po-no" placeholder="263275-1-1"></td>
-            <td><input type="text" class="table-input qty" placeholder="3"></td>
-            <td><input type="text" class="table-input unit" placeholder="PC"></td>
-            <td><input type="text" class="table-input unique-id" placeholder="250418003"></td>
-            <td><input type="text" class="table-input pn" placeholder="MT4571-01-001"></td>
+            <td><input type="text" class="table-input full-po-no" placeholder="如263275-1-1"></td>
+            <td><input type="text" class="table-input qty" placeholder="如3"></td>
+            <td><input type="text" class="table-input unit" placeholder="如PC"></td>
+            <td><input type="text" class="table-input unique-id" placeholder="如250418003"></td>
+            <td><input type="text" class="table-input pn" placeholder="如MT4571-01-001"></td>
             <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
             <td class="action-cell">
                 <button class="btn-icon download-row" title="下载" disabled>

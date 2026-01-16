@@ -287,6 +287,14 @@ body::before {
     color: var(--primary-blue-light);
 }
 
+.guide-note-inline {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 400;
+    font-style: normal;
+}
+
+
 .guide-steps {
     list-style: none;
     counter-reset: step-counter;
