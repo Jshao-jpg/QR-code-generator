@@ -123,6 +123,9 @@ function createDnRowHTML() {
             <td><input type="text" class="table-input po-no" placeholder="如263275"></td>
             <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
             <td class="action-cell">
+                <button class="btn-icon copy-row" title="复制" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2"/></svg>
+                </button>
                 <button class="btn-icon download-row" title="下载" disabled>
                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
@@ -152,6 +155,7 @@ function addDnRow() {
 function attachDnRowEvents(row) {
     const deleteBtn = row.querySelector('.delete-row');
     const downloadBtn = row.querySelector('.download-row');
+    const copyBtn = row.querySelector('.copy-row');
 
     deleteBtn.addEventListener('click', () => {
         if (dnTableBody.querySelectorAll('tr').length > 1) {
@@ -167,6 +171,13 @@ function attachDnRowEvents(row) {
         if (canvas.classList.contains('visible')) {
             const content = canvas.dataset.content;
             downloadQrCode(canvas, content, 'DN');
+        }
+    });
+
+    copyBtn.addEventListener('click', async () => {
+        const canvas = row.querySelector('.qr-canvas');
+        if (canvas.classList.contains('visible')) {
+            await copyQrCodeToClipboard(canvas);
         }
     });
 }
@@ -192,6 +203,7 @@ function generateAllDnQRCodes() {
         const content = `${dnNo};${vendorId};${poNo}`;
         const canvas = row.querySelector('.qr-canvas');
         const downloadBtn = row.querySelector('.download-row');
+        const copyBtn = row.querySelector('.copy-row');
 
         if (!canvas) {
             console.error('Canvas not found in row');
@@ -209,6 +221,7 @@ function generateAllDnQRCodes() {
             canvas.classList.add('visible');
             canvas.dataset.content = content;
             if (downloadBtn) downloadBtn.disabled = false;
+            if (copyBtn) copyBtn.disabled = false;
             successCount++;
         } catch (error) {
             console.error('QR generation error:', error);
@@ -260,6 +273,9 @@ function createDetailRowHTML() {
             <td><input type="text" class="table-input pn" placeholder="如MT4571-01-001"></td>
             <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
             <td class="action-cell">
+                <button class="btn-icon copy-row" title="复制" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2"/></svg>
+                </button>
                 <button class="btn-icon download-row" title="下载" disabled>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
@@ -289,6 +305,7 @@ function addDetailRow() {
 function attachDetailRowEvents(row) {
     const deleteBtn = row.querySelector('.delete-row');
     const downloadBtn = row.querySelector('.download-row');
+    const copyBtn = row.querySelector('.copy-row');
 
     deleteBtn.addEventListener('click', () => {
         if (detailTableBody.querySelectorAll('tr').length > 1) {
@@ -304,6 +321,13 @@ function attachDetailRowEvents(row) {
         if (canvas.classList.contains('visible')) {
             const content = canvas.dataset.content;
             downloadQrCode(canvas, content, 'Detail');
+        }
+    });
+
+    copyBtn.addEventListener('click', async () => {
+        const canvas = row.querySelector('.qr-canvas');
+        if (canvas.classList.contains('visible')) {
+            await copyQrCodeToClipboard(canvas);
         }
     });
 }
@@ -331,6 +355,7 @@ function generateAllDetailQRCodes() {
         const content = `${fullPoNo};${qty};${unit};${uniqueId};${pn}`;
         const canvas = row.querySelector('.qr-canvas');
         const downloadBtn = row.querySelector('.download-row');
+        const copyBtn = row.querySelector('.copy-row');
 
         if (!canvas) {
             console.error('Canvas not found in Detail row');
@@ -348,6 +373,7 @@ function generateAllDetailQRCodes() {
             canvas.classList.add('visible');
             canvas.dataset.content = content;
             if (downloadBtn) downloadBtn.disabled = false;
+            if (copyBtn) copyBtn.disabled = false;
             successCount++;
         } catch (error) {
             console.error('QR generation error:', error);
@@ -378,6 +404,37 @@ function downloadAllDetailQRCodes() {
 // ============================================
 // Common Download Function
 // ============================================
+
+/**
+ * Copy QR Code to clipboard
+ * @param {HTMLCanvasElement} canvas - Source canvas element
+ */
+async function copyQrCodeToClipboard(canvas) {
+    try {
+        // Convert canvas to blob
+        const blob = await new Promise(resolve => {
+            canvas.toBlob(resolve, 'image/png');
+        });
+
+        // Check if Clipboard API is supported
+        if (!navigator.clipboard || !navigator.clipboard.write) {
+            showToast('您的浏览器不支持复制功能', 'error');
+            return;
+        }
+
+        // Write to clipboard
+        await navigator.clipboard.write([
+            new ClipboardItem({
+                'image/png': blob
+            })
+        ]);
+
+        showToast('二维码已复制到剪贴板', 'success');
+    } catch (error) {
+        console.error('Copy error:', error);
+        showToast('复制失败，请使用下载功能', 'error');
+    }
+}
 
 /**
  * Download QR Code as PNG image

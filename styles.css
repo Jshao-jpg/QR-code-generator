@@ -575,6 +575,12 @@ body::before {
     color: var(--primary-blue-light);
 }
 
+.btn-icon.copy-row:hover:not(:disabled) {
+    border-color: #10b981;
+    color: #10b981;
+}
+
+
 .btn-icon.delete-row:hover {
     border-color: #ef4444;
     color: #ef4444;
@@ -688,6 +694,34 @@ body::before {
     color: var(--text-muted);
     font-size: 0.85rem;
 }
+
+.footer p {
+    margin: var(--spacing-xs) 0;
+}
+
+.contact-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-sm);
+}
+
+.contact-info svg {
+    flex-shrink: 0;
+}
+
+.contact-info a {
+    color: var(--primary-blue-light);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.contact-info a:hover {
+    color: var(--primary-blue);
+    text-decoration: underline;
+}
+
 
 /* Toast Notification */
 .toast {
