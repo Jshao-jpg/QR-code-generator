@@ -419,6 +419,107 @@ body::before {
     color: var(--text-secondary);
 }
 
+/* Paste Area */
+.paste-area-container {
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: rgba(37, 99, 235, 0.05);
+    border: 1px dashed var(--primary-blue);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-normal);
+}
+
+.paste-area-container:hover {
+    background: rgba(37, 99, 235, 0.08);
+}
+
+.detail-section .paste-area-container {
+    background: rgba(124, 58, 237, 0.05);
+    border-color: var(--secondary-purple);
+}
+
+.detail-section .paste-area-container:hover {
+    background: rgba(124, 58, 237, 0.08);
+}
+
+.paste-area-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.paste-area-header svg {
+    color: var(--primary-blue-light);
+}
+
+.detail-section .paste-area-header svg {
+    color: var(--secondary-purple-light);
+}
+
+.paste-area {
+    width: 100%;
+    padding: var(--spacing-sm);
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-family: 'Consolas', 'Monaco', monospace;
+    resize: vertical;
+    min-height: 60px;
+    margin-bottom: var(--spacing-sm);
+    transition: all var(--transition-fast);
+}
+
+.paste-area::placeholder {
+    color: var(--text-muted);
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+}
+
+.paste-area:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.detail-section .paste-area:focus {
+    border-color: var(--secondary-purple);
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+}
+
+.paste-parse-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: 8px 16px;
+    background: var(--gradient-blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.paste-parse-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.paste-parse-btn.detail-paste-btn {
+    background: var(--gradient-purple);
+}
+
+.paste-parse-btn.detail-paste-btn:hover {
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+
 /* Table Container */
 .table-container {
     overflow-x: auto;

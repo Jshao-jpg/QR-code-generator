@@ -152,6 +152,27 @@
                     </div>
                 </div>
 
+                <!-- 快速粘贴区域 -->
+                <div class="paste-area-container">
+                    <div class="paste-area-header">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"
+                                stroke="currentColor" stroke-width="2" />
+                            <rect x="8" y="2" width="8" height="4" rx="1" stroke="currentColor" stroke-width="2" />
+                        </svg>
+                        <span>快速粘贴（从Excel复制后粘贴到此处）</span>
+                    </div>
+                    <textarea class="paste-area" id="dnPasteArea"
+                        placeholder="从Excel表格中复制数据，粘贴到这里...&#10;支持多行粘贴，每列用Tab分隔" rows="3"></textarea>
+                    <button class="paste-parse-btn" id="dnParsePaste">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        解析并填充
+                    </button>
+                </div>
+
                 <div class="table-container">
                     <table class="data-table" id="dnTable">
                         <thead>
@@ -240,6 +261,27 @@
                         <h2>送货单明细 QR Code</h2>
                         <p>DN Detail QR Code - 包含5种信息（批量输入）</p>
                     </div>
+                </div>
+
+                <!-- 快速粘贴区域 -->
+                <div class="paste-area-container">
+                    <div class="paste-area-header">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"
+                                stroke="currentColor" stroke-width="2" />
+                            <rect x="8" y="2" width="8" height="4" rx="1" stroke="currentColor" stroke-width="2" />
+                        </svg>
+                        <span>快速粘贴（从Excel复制后粘贴到此处）</span>
+                    </div>
+                    <textarea class="paste-area" id="detailPasteArea"
+                        placeholder="从Excel表格中复制数据，粘贴到这里...&#10;支持多行粘贴，每列用Tab分隔" rows="3"></textarea>
+                    <button class="paste-parse-btn detail-paste-btn" id="detailParsePaste">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        解析并填充
+                    </button>
                 </div>
 
                 <div class="table-container">

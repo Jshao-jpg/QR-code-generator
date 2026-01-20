@@ -460,6 +460,128 @@ function downloadQrCode(canvas, content, prefix) {
 }
 
 // ============================================
+// Paste & Parse Functions
+// ============================================
+
+/**
+ * Parse pasted DN data and fill into table
+ */
+function parseDnPasteData() {
+    const pasteArea = document.getElementById('dnPasteArea');
+    const text = pasteArea.value.trim();
+
+    if (!text) {
+        showToast('请先粘贴数据', 'error');
+        return;
+    }
+
+    // Split by lines
+    const lines = text.split(/\r?\n/).filter(line => line.trim());
+
+    if (lines.length === 0) {
+        showToast('没有有效数据', 'error');
+        return;
+    }
+
+    // Clear existing rows except first one
+    const existingRows = dnTableBody.querySelectorAll('tr');
+    existingRows.forEach((row, index) => {
+        if (index > 0) row.remove();
+    });
+
+    let successCount = 0;
+
+    lines.forEach((line, index) => {
+        // Split by tab or multiple spaces
+        const columns = line.split(/\t+/).map(col => col.trim());
+
+        // Need at least 3 columns for DN
+        if (columns.length < 3) {
+            return;
+        }
+
+        let targetRow;
+        if (index === 0) {
+            targetRow = dnTableBody.querySelector('tr');
+        } else {
+            addDnRow();
+            targetRow = dnTableBody.querySelectorAll('tr')[index];
+        }
+
+        const inputs = targetRow.querySelectorAll('input.table-input');
+        if (inputs[0]) inputs[0].value = columns[0] || '';
+        if (inputs[1]) inputs[1].value = columns[1] || '';
+        if (inputs[2]) inputs[2].value = columns[2] || '';
+
+        successCount++;
+    });
+
+    updateRowNumbers(dnTableBody);
+    pasteArea.value = '';
+    showToast(`成功填充 ${successCount} 行数据`, 'success');
+}
+
+/**
+ * Parse pasted Detail data and fill into table
+ */
+function parseDetailPasteData() {
+    const pasteArea = document.getElementById('detailPasteArea');
+    const text = pasteArea.value.trim();
+
+    if (!text) {
+        showToast('请先粘贴数据', 'error');
+        return;
+    }
+
+    // Split by lines
+    const lines = text.split(/\r?\n/).filter(line => line.trim());
+
+    if (lines.length === 0) {
+        showToast('没有有效数据', 'error');
+        return;
+    }
+
+    // Clear existing rows except first one
+    const existingRows = detailTableBody.querySelectorAll('tr');
+    existingRows.forEach((row, index) => {
+        if (index > 0) row.remove();
+    });
+
+    let successCount = 0;
+
+    lines.forEach((line, index) => {
+        // Split by tab or multiple spaces
+        const columns = line.split(/\t+/).map(col => col.trim());
+
+        // Need at least 5 columns for Detail
+        if (columns.length < 5) {
+            return;
+        }
+
+        let targetRow;
+        if (index === 0) {
+            targetRow = detailTableBody.querySelector('tr');
+        } else {
+            addDetailRow();
+            targetRow = detailTableBody.querySelectorAll('tr')[index];
+        }
+
+        const inputs = targetRow.querySelectorAll('input.table-input');
+        if (inputs[0]) inputs[0].value = columns[0] || '';
+        if (inputs[1]) inputs[1].value = columns[1] || '';
+        if (inputs[2]) inputs[2].value = columns[2] || '';
+        if (inputs[3]) inputs[3].value = columns[3] || '';
+        if (inputs[4]) inputs[4].value = columns[4] || '';
+
+        successCount++;
+    });
+
+    updateRowNumbers(detailTableBody);
+    pasteArea.value = '';
+    showToast(`成功填充 ${successCount} 行数据`, 'success');
+}
+
+// ============================================
 // Event Listeners
 // ============================================
 
@@ -472,6 +594,13 @@ downloadAllDnBtn.addEventListener('click', downloadAllDnQRCodes);
 addDetailRowBtn.addEventListener('click', addDetailRow);
 generateAllDetailBtn.addEventListener('click', generateAllDetailQRCodes);
 downloadAllDetailBtn.addEventListener('click', downloadAllDetailQRCodes);
+
+// Paste Parse Section
+const dnParsePasteBtn = document.getElementById('dnParsePaste');
+const detailParsePasteBtn = document.getElementById('detailParsePaste');
+dnParsePasteBtn.addEventListener('click', parseDnPasteData);
+detailParsePasteBtn.addEventListener('click', parseDetailPasteData);
+
 
 // Initialize existing rows
 document.querySelectorAll('#dnTableBody tr').forEach(attachDnRowEvents);
