@@ -222,105 +222,98 @@ async function copyAllQrCodes(tableBody) {
 }
 
 // ========================
-// 功能6: SVG导出
+// 功能6: 数据报表导出 (Excel格式)
 // ========================
 
 /**
- * 导出单个SVG文件
+ * 导出数据报表 (包含标题、信息和二维码图片)
+ * 使用 HTML 转 Excel 方案以支持图片展示
  */
-function exportQrCodeAsSvg(content, filename) {
-    const qr = qrcode(0, 'M');
-    qr.addData(content);
-    qr.make();
+async function exportDataReport(tableBody, type) {
+    const rows = tableBody.querySelectorAll('tr');
+    const visibleCanvases = tableBody.querySelectorAll('.qr-canvas.visible');
 
-    const moduleCount = qr.getModuleCount();
-    const cellSize = 10;
-    const svgSize = moduleCount * cellSize;
-
-    let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${svgSize}" height="${svgSize}" viewBox="0 0 ${svgSize} ${svgSize}">`;
-    svg += `<rect width="${svgSize}" height="${svgSize}" fill="#ffffff"/>`;
-
-    for (let row = 0; row < moduleCount; row++) {
-        for (let col = 0; col < moduleCount; col++) {
-            if (qr.isDark(row, col)) {
-                const x = col * cellSize;
-                const y = row * cellSize;
-                svg += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="#000000"/>`;
-            }
-        }
-    }
-
-    svg += '</svg>';
-
-    const blob = new Blob([svg], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${filename}.svg`;
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-/**
- * 批量导出所有QR码为SVG
- */
-function exportAllQrCodesAsSvg(tableBody, prefix) {
-    const canvases = tableBody.querySelectorAll('.qr-canvas.visible');
-
-    if (canvases.length === 0) {
-        showToast('没有可导出的二维码', 'error');
+    if (visibleCanvases.length === 0) {
+        showToast('请先生成二维码再导出报表', 'error');
         return;
     }
 
-    canvases.forEach((canvas, index) => {
-        const content = canvas.dataset.content;
-        const filename = `${prefix}_${String(index + 1).padStart(3, '0')}`;
+    const title = type === 'DN' ?
+        '送货单表头数据报表 (DN Header Data Report)' :
+        '送货单明细数据报表 (DN Detail Data Report)';
+    const filename = `${type}_Report_${new Date().toLocaleDateString().replace(/\//g, '-')}.xls`;
 
-        setTimeout(() => {
-            exportQrCodeAsSvg(content, filename);
-        }, index * 100);
+    // 构建 HTML 表格字符串
+    // 使用 mso-number-format:"\@" 确保所有内容被 Excel 识别为文本，防止自动进位或添加数字
+    let html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <style>
+            table { border-collapse: collapse; }
+            th, td { border: 0.5pt solid #000; padding: 5px; text-align: center; vertical-align: middle; }
+            .header-title { font-size: 16pt; font-weight: bold; height: 40px; background-color: #f8f9fa; }
+            .meta-info { color: #666; font-size: 9pt; height: 25px; }
+            .qr-img { width: 100px; height: 100px; }
+            th { background-color: #e9ecef; font-weight: bold; }
+            .text-cell { mso-number-format:"\\@"; }
+            .num-cell { mso-number-format:"0"; }
+        </style>
+    </head>
+    <body>
+        <table>
+            <tr><td colspan="${type === 'DN' ? 5 : 7}" class="header-title">${title}</td></tr>
+            <tr><td colspan="${type === 'DN' ? 5 : 7}" class="meta-info">生成时间: ${new Date().toLocaleString()} | 送货单 QR Code 生成器 (QR Code General)</td></tr>
+            <tr></tr> <!-- 空行 -->
+            <tr style="background-color: #f2f2f2; font-weight: bold;">
+                <th style="width: 50px;">#</th>
+                ${type === 'DN' ? `
+                    <th style="width: 150px;">DN No.<br>送货单号</th>
+                    <th style="width: 120px;">Vendor ID<br>供应商ID</th>
+                    <th style="width: 150px;">PO No.<br>采购单号</th>
+                ` : `
+                    <th style="width: 150px;">Full PO No.<br>完整采购单号</th>
+                    <th style="width: 80px;">Qty<br>数量</th>
+                    <th style="width: 80px;">Unit<br>单位</th>
+                    <th style="width: 120px;">Unique ID<br>流水号</th>
+                    <th style="width: 150px;">PN<br>零件编号</th>
+                `}
+                <th style="width: 120px;">QR Code<br>二维码</th>
+            </tr>
+    `;
+
+    rows.forEach((row, index) => {
+        const canvas = row.querySelector('.qr-canvas');
+        if (canvas && canvas.classList.contains('visible')) {
+            const inputs = Array.from(row.querySelectorAll('input.table-input'));
+            const rowData = inputs.map(input => input.value);
+            const qrBase64 = canvas.toDataURL('image/png');
+
+            html += `
+                <tr>
+                    <td class="num-cell">${index + 1}</td>
+                    ${rowData.map(val => `<td class="text-cell">${val || ''}</td>`).join('')}
+                    <td style="height: 110px; width: 110px;">
+                        <img src="${qrBase64}" class="qr-img" width="100" height="100">
+                    </td>
+                </tr>
+            `;
+        }
     });
 
-    showToast(`正在导出 ${canvases.length} 个SVG文件...`, 'success');
-}
-
-// ========================
-// 功能7: ZIP打包下载
-// ========================
-
-/**
- * 将所有QR码打包为ZIP文件下载
- */
-async function exportQrCodesAsZip(tableBody, prefix) {
-    const canvases = tableBody.querySelectorAll('.qr-canvas.visible');
-
-    if (canvases.length === 0) {
-        showToast('没有可打包的二维码', 'error');
-        return;
-    }
+    html += `
+        </table>
+    </body>
+    </html>
+    `;
 
     try {
-        const zip = new JSZip();
-        const folder = zip.folder('QRCodes');
-
-        for (let i = 0; i < canvases.length; i++) {
-            const canvas = canvases[i];
-            const filename = `${prefix}_${String(i + 1).padStart(3, '0')}.png`;
-
-            const blob = await new Promise(resolve => {
-                canvas.toBlob(resolve, 'image/png');
-            });
-
-            folder.file(filename, blob);
-        }
-
-        const zipBlob = await zip.generateAsync({ type: 'blob' });
-        saveAs(zipBlob, `${prefix}_QRCodes_${Date.now()}.zip`);
-
-        showToast(`✅ 成功打包 ${canvases.length} 个二维码`, 'success');
+        const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+        saveAs(blob, filename);
+        showToast('✅ 报表导出完成', 'success');
     } catch (error) {
-        console.error('ZIP export error:', error);
-        showToast('打包失败', 'error');
+        console.error('Report export error:', error);
+        showToast('导出失败，请重试', 'error');
     }
 }
 
@@ -462,7 +455,7 @@ function clearAllDnData(dnTableBody) {
         updateRowNumbers(dnTableBody);
 
         // Disable buttons
-        ['downloadAllDn', 'copyAllDn', 'exportSvgDn', 'exportZipDn'].forEach(id => {
+        ['downloadAllDn', 'copyAllDn', 'exportReportDn'].forEach(id => {
             const btn = document.getElementById(id);
             if (btn) btn.disabled = true;
         });
@@ -489,7 +482,7 @@ function clearAllDetailData(detailTableBody) {
         updateRowNumbers(detailTableBody);
 
         // Disable buttons
-        ['downloadAllDetail', 'copyAllDetail', 'exportSvgDetail', 'exportZipDetail'].forEach(id => {
+        ['downloadAllDetail', 'copyAllDetail', 'exportReportDetail'].forEach(id => {
             const btn = document.getElementById(id);
             if (btn) btn.disabled = true;
         });

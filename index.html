@@ -44,106 +44,74 @@
             </button>
         </header>
 
-        <!-- 导入功能区域 -->
-        <section class="import-section">
-            <div class="import-card">
-                <div class="import-content">
-                    <div class="import-left">
-                        <div class="import-header">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"
-                                    stroke="currentColor" stroke-width="2" />
-                                <path d="M14 2v6h6M12 18v-6M9 15l3 3 3-3" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                            <h3>批量导入数据</h3>
-                        </div>
-                        <p class="import-desc">下载模板填写数据后，一键导入到页面中批量生成二维码</p>
-                        <div class="import-groups">
-                            <div class="import-group dn-group">
-                                <button class="template-btn" id="downloadDnTemplate">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"
-                                            stroke="currentColor" stroke-width="2" />
-                                        <path d="M14 2v6h6" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" />
-                                    </svg>
-                                    下载送货单表头模板
-                                </button>
-                                <label class="import-btn">
-                                    <input type="file" id="importDnFile" accept=".xlsx,.xls,.csv"
-                                        style="display: none;">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round" />
-                                    </svg>
-                                    导入送货单表头数据
-                                </label>
-                            </div>
-
-                            <div class="inner-divider"></div>
-
-                            <div class="import-group detail-group">
-                                <button class="template-btn detail-template" id="downloadDetailTemplate">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"
-                                            stroke="currentColor" stroke-width="2" />
-                                        <path d="M14 2v6h6" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" />
-                                    </svg>
-                                    下载送货单明细模板
-                                </button>
-                                <label class="import-btn detail-import">
-                                    <input type="file" id="importDetailFile" accept=".xlsx,.xls,.csv"
-                                        style="display: none;">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round" />
-                                    </svg>
-                                    导入送货单明细数据
-                                </label>
-                            </div>
-                        </div>
+        <!-- 使用指南区域 (可折叠) -->
+        <section class="guide-section">
+            <div class="guide-card" id="guideCard">
+                <div class="guide-header" onclick="document.getElementById('guideCard').classList.toggle('expanded')">
+                    <div class="guide-title-row">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                            <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                        </svg>
+                        <h3>使用流程与操作指南 <span class="header-hint">（点击可展开说明）</span></h3>
                     </div>
+                    <svg class="guide-toggle-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </div>
 
-                    <div class="import-right">
-                        <h4 class="guide-title">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
-                                <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" />
-                            </svg>
-                            <span>使用流程 <span class="guide-note-inline">（如只生成单个，不需要参考此流程）</span></span>
-                        </h4>
-                        <ol class="guide-steps">
-                            <li>
-                                <span class="step-number">1</span>
-                                <span class="step-text">点击"下载送货单模板"或"下载送货单明细模板"</span>
-                            </li>
-                            <li>
-                                <span class="step-number">2</span>
-                                <span class="step-text">在Excel中填写数据（可参考模板示例）</span>
-                            </li>
-                            <li>
-                                <span class="step-number">3</span>
-                                <span class="step-text">点击"导入送货单数据"或"导入送货单明细数据"</span>
-                            </li>
-                            <li>
-                                <span class="step-number">4</span>
-                                <span class="step-text">选择填好的Excel文件，数据自动导入</span>
-                            </li>
-                            <li>
-                                <span class="step-number">5</span>
-                                <span class="step-text">点击"批量生成"生成所有二维码</span>
-                            </li>
-                            <li>
-                                <span class="step-number">6</span>
-                                <span class="step-text">点击"全部下载"批量保存二维码</span>
-                            </li>
-                        </ol>
+                <div class="guide-content">
+                    <div class="guide-grid">
+                        <!-- 方式 1 -->
+                        <div class="guide-col">
+                            <h4 class="guide-col-title">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"
+                                        stroke="currentColor" stroke-width="2" />
+                                    <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                </svg>
+                                方式 1：模板导入 (推荐)
+                            </h4>
+                            <p class="guide-text">
+                                最适合大批量数据。点击下面对应模块的 <b>"下载模板"</b>，在 Excel 中填好数据后，点击 <b>"导入数据"</b> 即可一键填充。
+                            </p>
+                        </div>
+
+                        <!-- 方式 2 -->
+                        <div class="guide-col">
+                            <h4 class="guide-col-title">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                    <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"
+                                        stroke="currentColor" stroke-width="2" />
+                                    <rect x="8" y="2" width="8" height="4" rx="1" stroke="currentColor"
+                                        stroke-width="2" />
+                                </svg>
+                                方式 2：智能粘贴
+                            </h4>
+                            <p class="guide-text">
+                                在 Excel 中选中数据区域并复制，然后直接粘贴到页面的 <b>"快速粘贴"</b> 输入框中，点击 <b>"解析并填充"</b>。支持自动识别 Tab 和空格分隔。
+                            </p>
+                        </div>
+
+                        <!-- 方式 3 -->
+                        <div class="guide-col">
+                            <h4 class="guide-col-title">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                                方式 3：手动输入
+                            </h4>
+                            <p class="guide-text">
+                                直接在下方输入框中输入或修改数据。点击 <b>"添加行"</b> 可新增空行。支持对单行进行复制或删除操作。
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -165,6 +133,27 @@
                         <h2>送货单表头 QR Code</h2>
                         <p>DN QR Code - 包含3种信息（批量输入）</p>
                     </div>
+
+                    <div class="header-actions">
+                        <button class="template-btn header-btn" id="downloadDnTemplate">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"
+                                    stroke="currentColor" stroke-width="2" />
+                                <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            </svg>
+                            下载模板
+                        </button>
+                        <button class="template-btn header-btn"
+                            onclick="document.getElementById('importDnFile').click()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                            导入数据
+                        </button>
+                        <input type="file" id="importDnFile" accept=".xlsx,.xls,.csv" style="display: none;">
+                    </div>
                 </div>
 
                 <!-- 快速粘贴区域 -->
@@ -178,7 +167,7 @@
                         <span>快速粘贴（从Excel复制后粘贴到此处）</span>
                     </div>
                     <textarea class="paste-area" id="dnPasteArea"
-                        placeholder="从Excel表格中复制数据，粘贴到这里...&#10;支持多行粘贴，每列用Tab分隔" rows="3"></textarea>
+                        placeholder="从Excel表格中复制数据，粘贴到这里...&#10;支持多行粘贴，数据之间用Tab或者空格分隔，不同行以回车符间隔" rows="3"></textarea>
                     <button class="paste-parse-btn" id="dnParsePaste">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                             <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2"
@@ -264,23 +253,17 @@
                             <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor"
                                 stroke-width="2" />
                         </svg>
-                        复制所有
+                        复制所有二维码
                     </button>
-                    <button class="download-all-btn" id="exportSvgDn" disabled>
+                    <button class="download-all-btn" id="exportReportDn" disabled>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                             <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor"
                                 stroke-width="2" />
                             <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" />
+                            <path d="M8 13h8M8 17h8M8 9h2" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
                         </svg>
-                        导出SVG
-                    </button>
-                    <button class="download-all-btn" id="exportZipDn" disabled>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2" />
-                            <rect x="3" y="5" width="18" height="8" stroke="currentColor" stroke-width="2" />
-                            <path d="M8 9h8M8 11h8" stroke="currentColor" stroke-width="2" />
-                        </svg>
-                        ZIP打包
+                        导出数据报表
                     </button>
                     <button class="add-row-btn danger-outline" id="clearAllDn">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -307,6 +290,27 @@
                         <h2>送货单明细 QR Code</h2>
                         <p>DN Detail QR Code - 包含5种信息（批量输入）</p>
                     </div>
+
+                    <div class="header-actions">
+                        <button class="template-btn detail-template header-btn" id="downloadDetailTemplate">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"
+                                    stroke="currentColor" stroke-width="2" />
+                                <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            </svg>
+                            下载模板
+                        </button>
+                        <button class="template-btn detail-template header-btn"
+                            onclick="document.getElementById('importDetailFile').click()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                            导入数据
+                        </button>
+                        <input type="file" id="importDetailFile" accept=".xlsx,.xls,.csv" style="display: none;">
+                    </div>
                 </div>
 
                 <!-- 快速粘贴区域 -->
@@ -320,7 +324,7 @@
                         <span>快速粘贴（从Excel复制后粘贴到此处）</span>
                     </div>
                     <textarea class="paste-area" id="detailPasteArea"
-                        placeholder="从Excel表格中复制数据，粘贴到这里...&#10;支持多行粘贴，每列用Tab分隔" rows="3"></textarea>
+                        placeholder="从Excel表格中复制数据，粘贴到这里...&#10;支持多行粘贴，数据之间用Tab或者空格分隔，不同行以回车符间隔" rows="3"></textarea>
                     <button class="paste-parse-btn detail-paste-btn" id="detailParsePaste">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                             <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2"
@@ -410,23 +414,17 @@
                             <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor"
                                 stroke-width="2" />
                         </svg>
-                        复制所有
+                        复制所有二维码
                     </button>
-                    <button class="download-all-btn detail-download-all" id="exportSvgDetail" disabled>
+                    <button class="download-all-btn detail-download-all" id="exportReportDetail" disabled>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                             <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor"
                                 stroke-width="2" />
                             <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" />
+                            <path d="M8 13h8M8 17h8M8 9h2" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
                         </svg>
-                        导出SVG
-                    </button>
-                    <button class="download-all-btn detail-download-all" id="exportZipDetail" disabled>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2" />
-                            <rect x="3" y="5" width="18" height="8" stroke="currentColor" stroke-width="2" />
-                            <path d="M8 9h8M8 11h8" stroke="currentColor" stroke-width="2" />
-                        </svg>
-                        ZIP打包
+                        导出数据报表
                     </button>
                     <button class="add-row-btn danger-outline" id="clearAllDetail">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">

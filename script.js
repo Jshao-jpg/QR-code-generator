@@ -745,11 +745,8 @@ document.getElementById('importDetailFile').addEventListener('change', function 
     const copyAllDn = document.getElementById('copyAllDn');
     if (copyAllDn) copyAllDn.addEventListener('click', () => copyAllQrCodes(dnBody));
 
-    const exportSvgDn = document.getElementById('exportSvgDn');
-    if (exportSvgDn) exportSvgDn.addEventListener('click', () => exportAllQrCodesAsSvg(dnBody, 'DN'));
-
-    const exportZipDn = document.getElementById('exportZipDn');
-    if (exportZipDn) exportZipDn.addEventListener('click', () => exportQrCodesAsZip(dnBody, 'DN'));
+    const exportReportDn = document.getElementById('exportReportDn');
+    if (exportReportDn) exportReportDn.addEventListener('click', () => exportDataReport(dnBody, 'DN'));
 
     const clearAllDn = document.getElementById('clearAllDn');
     if (clearAllDn) clearAllDn.addEventListener('click', () => clearAllDnData(dnBody));
@@ -759,11 +756,8 @@ document.getElementById('importDetailFile').addEventListener('change', function 
     const copyAllDetail = document.getElementById('copyAllDetail');
     if (copyAllDetail) copyAllDetail.addEventListener('click', () => copyAllQrCodes(detailBody));
 
-    const exportSvgDetail = document.getElementById('exportSvgDetail');
-    if (exportSvgDetail) exportSvgDetail.addEventListener('click', () => exportAllQrCodesAsSvg(detailBody, 'Detail'));
-
-    const exportZipDetail = document.getElementById('exportZipDetail');
-    if (exportZipDetail) exportZipDetail.addEventListener('click', () => exportQrCodesAsZip(detailBody, 'Detail'));
+    const exportReportDetail = document.getElementById('exportReportDetail');
+    if (exportReportDetail) exportReportDetail.addEventListener('click', () => exportDataReport(detailBody, 'Detail'));
 
     const clearAllDetail = document.getElementById('clearAllDetail');
     if (clearAllDetail) clearAllDetail.addEventListener('click', () => clearAllDetailData(detailBody));
@@ -856,11 +850,9 @@ function _executeGenerateAllDn(rows) {
         document.getElementById('downloadAllDn').disabled = false;
         // Enable new buttons
         const copyAllDn = document.getElementById('copyAllDn');
-        const exportSvgDn = document.getElementById('exportSvgDn');
-        const exportZipDn = document.getElementById('exportZipDn');
+        const exportReportDn = document.getElementById('exportReportDn');
         if (copyAllDn) copyAllDn.disabled = false;
-        if (exportSvgDn) exportSvgDn.disabled = false;
-        if (exportZipDn) exportZipDn.disabled = false;
+        if (exportReportDn) exportReportDn.disabled = false;
         showToast(`成功生成 ${successCount} 个二维码`, 'success');
     } else {
         showToast('请填写至少一行完整数据', 'error');
@@ -956,11 +948,9 @@ function _executeGenerateAllDetail(rows) {
         document.getElementById('downloadAllDetail').disabled = false;
         // Enable new buttons
         const copyAllDetail = document.getElementById('copyAllDetail');
-        const exportSvgDetail = document.getElementById('exportSvgDetail');
-        const exportZipDetail = document.getElementById('exportZipDetail');
+        const exportReportDetail = document.getElementById('exportReportDetail');
         if (copyAllDetail) copyAllDetail.disabled = false;
-        if (exportSvgDetail) exportSvgDetail.disabled = false;
-        if (exportZipDetail) exportZipDetail.disabled = false;
+        if (exportReportDetail) exportReportDetail.disabled = false;
 
         showToast(`成功生成 ${successCount} 个二维码`, 'success');
     } else {

@@ -185,209 +185,130 @@ body::before {
     color: var(--text-secondary);
 }
 
-/* Import Section */
-.import-section {
+/* Guide Section (Collapsible) */
+.guide-section {
     margin-bottom: var(--spacing-xl);
 }
 
-.import-card {
+.guide-card {
     background: var(--bg-card);
     backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
-    padding: var(--spacing-xl);
     box-shadow: var(--glass-shadow);
+    overflow: hidden;
+    /* For smooth collapse */
+    transition: all var(--transition-normal);
 }
 
-.import-content {
-    display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
-    /* 给左侧更多空间 */
-    gap: var(--spacing-2xl);
-    align-items: start;
+.guide-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid transparent;
+    /* Hidden by default */
+    transition: background 0.2s;
 }
 
-.import-left {
-    flex: 1;
+.guide-header:hover {
+    background: rgba(255, 255, 255, 0.05);
 }
 
-.import-right {
-    flex: 1;
-    padding-left: var(--spacing-xl);
-    border-left: 1px solid var(--glass-border);
-}
-
-.import-header {
+.guide-title-row {
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-    /* 增加标题下方间距 */
 }
 
-.import-header svg {
-    color: var(--primary-blue-light);
-}
-
-.import-header h3 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 0;
-}
-
-.import-desc {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-    /* 稍微调大一点 */
-    margin-bottom: var(--spacing-xl);
-    /* 增加说明文字下方间距 */
-}
-
-.import-groups {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
-}
-
-.import-group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
-    flex: 1;
-}
-
-.inner-divider {
-    width: 1px;
-    height: 100px;
-    background: var(--glass-border);
-    margin: 0 var(--spacing-sm);
-}
-
-.template-btn,
-.import-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-xs);
-    padding: 10px 20px;
-    background: transparent;
-    color: var(--primary-blue-light);
-    border: 2px solid var(--primary-blue);
-    border-radius: var(--radius-md);
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all var(--transition-normal);
-    width: 100%;
-}
-
-.template-btn:hover,
-.import-btn:hover {
-    background: var(--primary-blue);
-    color: white;
-    transform: translateY(-2px);
-}
-
-.template-btn.detail-template,
-.import-btn.detail-import {
-    color: var(--secondary-purple-light);
-    border-color: var(--secondary-purple);
-}
-
-.template-btn.detail-template:hover,
-.import-btn.detail-import:hover {
-    background: var(--secondary-purple);
-    color: white;
-}
-
-.import-btn {
-    position: relative;
-}
-
-/* Guide Styles */
-.guide-title {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
+.guide-title-row h3 {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: var(--spacing-lg);
-}
-
-.guide-title svg {
-    color: var(--primary-blue-light);
-}
-
-.guide-note-inline {
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    font-weight: 400;
-    font-style: normal;
-}
-
-
-.guide-steps {
-    list-style: none;
-    counter-reset: step-counter;
-    padding: 0;
     margin: 0;
 }
 
-.guide-steps li {
+.header-hint {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin-left: 8px;
+    opacity: 0.8;
+}
+
+.guide-toggle-icon {
+    color: var(--text-secondary);
+    transition: transform 0.3s ease;
+}
+
+/* Expanded State */
+.guide-card.expanded .guide-toggle-icon {
+    transform: rotate(180deg);
+}
+
+.guide-card.expanded .guide-header {
+    border-bottom-color: var(--glass-border);
+}
+
+.guide-content {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: all 0.4s ease-in-out;
+    padding: 0 var(--spacing-xl);
+}
+
+.guide-card.expanded .guide-content {
+    max-height: 1000px;
+    /* Arbitrary large value for transition */
+    opacity: 1;
+    padding: var(--spacing-xl);
+}
+
+.guide-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-xl);
+}
+
+.guide-col {
     display: flex;
-    align-items: flex-start;
+    flex-direction: column;
     gap: var(--spacing-md);
-    margin-bottom: 6px;
-    /* 减小行间距 */
-    padding: 6px 12px;
-    /* 减小上下内边距 */
-    border-radius: var(--radius-sm);
-    transition: background var(--transition-fast);
 }
 
-.guide-steps li:hover {
-    background: rgba(255, 255, 255, 0.03);
-}
-
-.step-number {
+.guide-col-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--primary-blue-light);
     display: flex;
     align-items: center;
-    justify-content: center;
-    min-width: 28px;
-    height: 28px;
-    background: var(--gradient-blue);
-    color: white;
-    border-radius: 50%;
-    font-size: 0.85rem;
-    font-weight: 600;
-    flex-shrink: 0;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
-.guide-steps li:nth-child(even) .step-number {
-    background: var(--gradient-purple);
+.guide-col:nth-child(2) .guide-col-title {
+    color: var(--secondary-purple-light);
 }
 
-.step-text {
+.guide-col:nth-child(3) .guide-col-title {
+    color: #10b981;
+}
+
+/* Emerald for manual */
+
+.guide-text {
     color: var(--text-secondary);
     font-size: 0.9rem;
     line-height: 1.6;
-    padding-top: 4px;
 }
 
 @media (max-width: 1024px) {
-    .import-content {
+    .guide-grid {
         grid-template-columns: 1fr;
-        gap: var(--spacing-xl);
-    }
-
-    .import-right {
-        padding-left: 0;
-        border-left: none;
-        padding-top: var(--spacing-xl);
-        border-top: 1px solid var(--glass-border);
+        gap: var(--spacing-lg);
     }
 }
 
@@ -452,6 +373,62 @@ body::before {
     font-size: 0.85rem;
     color: var(--text-secondary);
 }
+
+/* Header Actions (Button Styles) */
+.header-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 12px;
+}
+
+.header-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-secondary);
+}
+
+/* DN Section Specific Button Style */
+.dn-section .header-btn {
+    border-color: rgba(37, 99, 235, 0.5);
+    /* Blue */
+    color: var(--primary-blue-light);
+}
+
+.dn-section .header-btn:hover {
+    background: rgba(37, 99, 235, 0.1);
+    border-color: var(--primary-blue);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+/* Detail Section Specific Button Style */
+.detail-section .header-btn {
+    border-color: rgba(124, 58, 237, 0.5);
+    /* Purple */
+    color: var(--secondary-purple-light);
+}
+
+.detail-section .header-btn:hover {
+    background: rgba(124, 58, 237, 0.1);
+    border-color: var(--secondary-purple);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+
+/* Paste Area */
 
 /* Paste Area */
 .paste-area-container {
