@@ -1,4 +1,4 @@
-/**
+﻿/**
  * QR Code Generator - Batch Mode Script
  * 送货单二维码生成器 - 批量模式
  * Using qrcode-generator library
@@ -182,59 +182,8 @@ function attachDnRowEvents(row) {
     });
 }
 
-/**
- * Generate QR codes for all DN rows
- */
-function generateAllDnQRCodes() {
-    const rows = dnTableBody.querySelectorAll('tr');
-    let successCount = 0;
+// Original generateAllDnQRCodes removed - Replaced by enhanced version at the bottom
 
-    for (const row of rows) {
-        // Get all inputs in the row
-        const inputs = row.querySelectorAll('input.table-input');
-
-        // Get values by index
-        const dnNo = inputs[0] ? sanitizeInput(inputs[0].value) : '';
-        const vendorId = inputs[1] ? sanitizeInput(inputs[1].value) : '';
-        const poNo = inputs[2] ? sanitizeInput(inputs[2].value) : '';
-
-        if (!dnNo || !vendorId || !poNo) continue;
-
-        const content = `${dnNo};${vendorId};${poNo}`;
-        const canvas = row.querySelector('.qr-canvas');
-        const downloadBtn = row.querySelector('.download-row');
-        const copyBtn = row.querySelector('.copy-row');
-
-        if (!canvas) {
-            console.error('Canvas not found in row');
-            continue;
-        }
-
-        try {
-            // Set canvas size to high resolution (300x300)
-            canvas.width = 300;
-            canvas.height = 300;
-
-            // Draw QR code
-            drawQRCode(content, canvas);
-
-            canvas.classList.add('visible');
-            canvas.dataset.content = content;
-            if (downloadBtn) downloadBtn.disabled = false;
-            if (copyBtn) copyBtn.disabled = false;
-            successCount++;
-        } catch (error) {
-            console.error('QR generation error:', error);
-        }
-    }
-
-    if (successCount > 0) {
-        downloadAllDnBtn.disabled = false;
-        showToast(`成功生成 ${successCount} 个二维码`, 'success');
-    } else {
-        showToast('请填写至少一行完整数据', 'error');
-    }
-}
 
 /**
  * Download all DN QR codes
@@ -332,61 +281,8 @@ function attachDetailRowEvents(row) {
     });
 }
 
-/**
- * Generate QR codes for all Detail rows
- */
-function generateAllDetailQRCodes() {
-    const rows = detailTableBody.querySelectorAll('tr');
-    let successCount = 0;
+// Original generateAllDetailQRCodes removed - Replaced by enhanced version at the bottom
 
-    for (const row of rows) {
-        // Get all inputs in the row
-        const inputs = row.querySelectorAll('input.table-input');
-
-        // Get values by index
-        const fullPoNo = inputs[0] ? sanitizeInput(inputs[0].value) : '';
-        const qty = inputs[1] ? sanitizeInput(inputs[1].value) : '';
-        const unit = inputs[2] ? sanitizeInput(inputs[2].value) : '';
-        const uniqueId = inputs[3] ? sanitizeInput(inputs[3].value) : '';
-        const pn = inputs[4] ? sanitizeInput(inputs[4].value) : '';
-
-        if (!fullPoNo || !qty || !unit || !uniqueId || !pn) continue;
-
-        const content = `${fullPoNo};${qty};${unit};${uniqueId};${pn}`;
-        const canvas = row.querySelector('.qr-canvas');
-        const downloadBtn = row.querySelector('.download-row');
-        const copyBtn = row.querySelector('.copy-row');
-
-        if (!canvas) {
-            console.error('Canvas not found in Detail row');
-            continue;
-        }
-
-        try {
-            // Set canvas size to high resolution (300x300)
-            canvas.width = 300;
-            canvas.height = 300;
-
-            // Draw QR code
-            drawQRCode(content, canvas);
-
-            canvas.classList.add('visible');
-            canvas.dataset.content = content;
-            if (downloadBtn) downloadBtn.disabled = false;
-            if (copyBtn) copyBtn.disabled = false;
-            successCount++;
-        } catch (error) {
-            console.error('QR generation error:', error);
-        }
-    }
-
-    if (successCount > 0) {
-        downloadAllDetailBtn.disabled = false;
-        showToast(`成功生成 ${successCount} 个二维码`, 'success');
-    } else {
-        showToast('请填写至少一行完整数据', 'error');
-    }
-}
 
 /**
  * Download all Detail QR codes
@@ -492,8 +388,8 @@ function parseDnPasteData() {
     let successCount = 0;
 
     lines.forEach((line, index) => {
-        // Split by tab or multiple spaces
-        const columns = line.split(/\t+/).map(col => col.trim());
+        // Split by tab or multiple spaces (modified to support space separation)
+        const columns = line.trim().split(/\s+/);
 
         // Need at least 3 columns for DN
         if (columns.length < 3) {
@@ -550,8 +446,8 @@ function parseDetailPasteData() {
     let successCount = 0;
 
     lines.forEach((line, index) => {
-        // Split by tab or multiple spaces
-        const columns = line.split(/\t+/).map(col => col.trim());
+        // Split by tab or multiple spaces (modified to support space separation)
+        const columns = line.trim().split(/\s+/);
 
         // Need at least 5 columns for Detail
         if (columns.length < 5) {
@@ -812,3 +708,262 @@ document.getElementById('importDetailFile').addEventListener('change', function 
     }
 });
 
+// ================================================
+// 新功能集成代码 (Enhanced Features)
+// ================================================
+
+(function () {
+    // 1. 初始化模态框关闭逻辑
+    const closeModal = () => closeQrPreview();
+    const closeConfirmModal = (val) => closeConfirm(val);
+
+    const closeModalBtn = document.getElementById('closeModal');
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+
+    const confirmCancel = document.getElementById('confirmCancel');
+    if (confirmCancel) confirmCancel.addEventListener('click', () => closeConfirmModal(false));
+
+    const confirmOk = document.getElementById('confirmOk');
+    if (confirmOk) confirmOk.addEventListener('click', () => closeConfirmModal(true));
+
+    const qrModal = document.getElementById('qrPreviewModal');
+    if (qrModal) {
+        qrModal.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) closeModal();
+        });
+    }
+
+    const confirmModal = document.getElementById('confirmModal');
+    if (confirmModal) {
+        confirmModal.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) closeConfirmModal(false);
+        });
+    }
+
+    // 2. 初始化新按钮事件 (DN)
+    const dnBody = document.getElementById('dnTableBody');
+    const copyAllDn = document.getElementById('copyAllDn');
+    if (copyAllDn) copyAllDn.addEventListener('click', () => copyAllQrCodes(dnBody));
+
+    const exportSvgDn = document.getElementById('exportSvgDn');
+    if (exportSvgDn) exportSvgDn.addEventListener('click', () => exportAllQrCodesAsSvg(dnBody, 'DN'));
+
+    const exportZipDn = document.getElementById('exportZipDn');
+    if (exportZipDn) exportZipDn.addEventListener('click', () => exportQrCodesAsZip(dnBody, 'DN'));
+
+    const clearAllDn = document.getElementById('clearAllDn');
+    if (clearAllDn) clearAllDn.addEventListener('click', () => clearAllDnData(dnBody));
+
+    // 3. 初始化新按钮事件 (Detail)
+    const detailBody = document.getElementById('detailTableBody');
+    const copyAllDetail = document.getElementById('copyAllDetail');
+    if (copyAllDetail) copyAllDetail.addEventListener('click', () => copyAllQrCodes(detailBody));
+
+    const exportSvgDetail = document.getElementById('exportSvgDetail');
+    if (exportSvgDetail) exportSvgDetail.addEventListener('click', () => exportAllQrCodesAsSvg(detailBody, 'Detail'));
+
+    const exportZipDetail = document.getElementById('exportZipDetail');
+    if (exportZipDetail) exportZipDetail.addEventListener('click', () => exportQrCodesAsZip(detailBody, 'Detail'));
+
+    const clearAllDetail = document.getElementById('clearAllDetail');
+    if (clearAllDetail) clearAllDetail.addEventListener('click', () => clearAllDetailData(detailBody));
+
+    // 4. 初始化模态框按钮
+    const modalCopy = document.getElementById('modalCopy');
+    if (modalCopy) {
+        modalCopy.addEventListener('click', async () => {
+            if (currentPreviewCanvas) {
+                try {
+                    const blob = await new Promise(resolve => currentPreviewCanvas.toBlob(resolve));
+                    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                    showToast('已复制预览二维码', 'success');
+                } catch (e) {
+                    showToast('复制失败', 'error');
+                }
+            }
+        });
+    }
+
+    const modalDownload = document.getElementById('modalDownload');
+    if (modalDownload) {
+        modalDownload.addEventListener('click', () => {
+            if (currentPreviewCanvas) {
+                const link = document.createElement('a');
+                link.download = 'QR_Preview.png';
+                link.href = currentPreviewCanvas.toDataURL();
+                link.click();
+            }
+        });
+    }
+
+    // 5. 初始化自动保存
+    if (typeof initAutoSave === 'function') {
+        initAutoSave();
+    }
+})();
+
+// ================================================
+// 覆盖原有生成函数 (Overriding Generation Functions)
+// ================================================
+
+// Override generateAllDnQRCodes with enhancement
+function generateAllDnQRCodes() {
+    const rows = dnTableBody.querySelectorAll('tr');
+
+    // Duplicate Check
+    const duplicates = checkDnDuplicates(rows);
+    if (duplicates.length > 0) {
+        showConfirm(`⚠️ 警告：检测到重复数据\n${duplicates.join('\n')}\n\n建议检查后重试。仍要继续生成吗？`, () => {
+            _executeGenerateAllDn(rows);
+        });
+    } else {
+        _executeGenerateAllDn(rows);
+    }
+}
+
+function _executeGenerateAllDn(rows) {
+    let successCount = 0;
+    for (const row of rows) {
+        const inputs = row.querySelectorAll('input.table-input');
+        const dnNo = inputs[0] ? sanitizeInput(inputs[0].value) : '';
+        const vendorId = inputs[1] ? sanitizeInput(inputs[1].value) : '';
+        const poNo = inputs[2] ? sanitizeInput(inputs[2].value) : '';
+        if (!dnNo || !vendorId || !poNo) continue;
+        const content = `${dnNo};${vendorId};${poNo}`;
+        const canvas = row.querySelector('.qr-canvas');
+        const downloadBtn = row.querySelector('.download-row');
+        const copyBtn = row.querySelector('.copy-row');
+        if (!canvas) continue;
+        try {
+            canvas.width = 300; canvas.height = 300;
+            drawQRCode(content, canvas);
+            canvas.classList.add('visible');
+            canvas.dataset.content = content;
+            if (downloadBtn) downloadBtn.disabled = false;
+            if (copyBtn) copyBtn.disabled = false;
+
+            // Add click event for preview
+            if (!canvas.dataset.hasClick) {
+                canvas.style.cursor = 'pointer';
+                canvas.addEventListener('click', () => showQrPreview(canvas));
+                canvas.dataset.hasClick = 'true';
+            }
+
+            successCount++;
+        } catch (error) { console.error(error); }
+    }
+    if (successCount > 0) {
+        document.getElementById('downloadAllDn').disabled = false;
+        // Enable new buttons
+        const copyAllDn = document.getElementById('copyAllDn');
+        const exportSvgDn = document.getElementById('exportSvgDn');
+        const exportZipDn = document.getElementById('exportZipDn');
+        if (copyAllDn) copyAllDn.disabled = false;
+        if (exportSvgDn) exportSvgDn.disabled = false;
+        if (exportZipDn) exportZipDn.disabled = false;
+        showToast(`成功生成 ${successCount} 个二维码`, 'success');
+    } else {
+        showToast('请填写至少一行完整数据', 'error');
+    }
+}
+
+// Override generateAllDetailQRCodes with enhancement
+function generateAllDetailQRCodes() {
+    const rows = detailTableBody.querySelectorAll('tr');
+
+    // Validate Qty and Full PO No.
+    let hasError = false;
+    rows.forEach((row, index) => {
+        // Full PO No Validation
+        const fullPoInput = row.querySelectorAll('input.table-input')[0];
+        if (fullPoInput && fullPoInput.value.trim()) {
+            const poVal = fullPoInput.value.trim();
+            const hyphenCount = (poVal.match(/-/g) || []).length;
+
+            if (hyphenCount !== 2) {
+                fullPoInput.classList.add('error');
+                showToast(`第${index + 1}行：格式错误 (必须且只能包含两个 "-")`, 'error');
+                setTimeout(() => fullPoInput.classList.remove('error'), 3000);
+                hasError = true;
+            } else if (poVal.split('-')[1].trim() === '') {
+                fullPoInput.classList.add('error');
+                showToast(`第${index + 1}行：格式错误 (两个 "-" 之间必须包含内容)`, 'error');
+                setTimeout(() => fullPoInput.classList.remove('error'), 3000);
+                hasError = true;
+            }
+        }
+
+        // Qty Validation
+        const qtyInput = row.querySelectorAll('input.table-input')[1];
+        if (qtyInput && qtyInput.value.trim()) {
+            const val = validateQty(qtyInput.value);
+            if (!val.valid) {
+                qtyInput.classList.add('error');
+                showToast(`第${index + 1}行：${val.message}`, 'error');
+                setTimeout(() => qtyInput.classList.remove('error'), 3000);
+                hasError = true;
+            }
+        }
+    });
+    if (hasError) return;
+
+    // Duplicate Check
+    const duplicates = checkDetailDuplicates(rows);
+    if (duplicates.length > 0) {
+        showConfirm(`⚠️ 警告：检测到重复数据\n${duplicates.join('\n')}\n\n建议检查后重试。仍要继续生成吗？`, () => {
+            _executeGenerateAllDetail(rows);
+        });
+    } else {
+        _executeGenerateAllDetail(rows);
+    }
+}
+
+function _executeGenerateAllDetail(rows) {
+    let successCount = 0;
+    for (const row of rows) {
+        const inputs = row.querySelectorAll('input.table-input');
+        const fullPoNo = inputs[0] ? sanitizeInput(inputs[0].value) : '';
+        const qty = inputs[1] ? sanitizeInput(inputs[1].value) : '';
+        const unit = inputs[2] ? sanitizeInput(inputs[2].value) : '';
+        const uniqueId = inputs[3] ? sanitizeInput(inputs[3].value) : '';
+        const pn = inputs[4] ? sanitizeInput(inputs[4].value) : '';
+
+        if (!fullPoNo || !qty || !unit || !uniqueId || !pn) continue;
+        const content = `${fullPoNo};${qty};${unit};${uniqueId};${pn}`;
+        const canvas = row.querySelector('.qr-canvas');
+        const downloadBtn = row.querySelector('.download-row');
+        const copyBtn = row.querySelector('.copy-row');
+        if (!canvas) continue;
+        try {
+            canvas.width = 300; canvas.height = 300;
+            drawQRCode(content, canvas);
+            canvas.classList.add('visible');
+            canvas.dataset.content = content;
+            if (downloadBtn) downloadBtn.disabled = false;
+            if (copyBtn) copyBtn.disabled = false;
+
+            // Add click event for preview
+            if (!canvas.dataset.hasClick) {
+                canvas.style.cursor = 'pointer';
+                canvas.addEventListener('click', () => showQrPreview(canvas));
+                canvas.dataset.hasClick = 'true';
+            }
+            successCount++;
+        } catch (error) { console.error(error); }
+    }
+
+    if (successCount > 0) {
+        document.getElementById('downloadAllDetail').disabled = false;
+        // Enable new buttons
+        const copyAllDetail = document.getElementById('copyAllDetail');
+        const exportSvgDetail = document.getElementById('exportSvgDetail');
+        const exportZipDetail = document.getElementById('exportZipDetail');
+        if (copyAllDetail) copyAllDetail.disabled = false;
+        if (exportSvgDetail) exportSvgDetail.disabled = false;
+        if (exportZipDetail) exportZipDetail.disabled = false;
+
+        showToast(`成功生成 ${successCount} 个二维码`, 'success');
+    } else {
+        showToast('请填写至少一行完整数据', 'error');
+    }
+}

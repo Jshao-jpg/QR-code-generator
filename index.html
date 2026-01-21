@@ -7,8 +7,15 @@
     <meta name="description" content="送货单二维码生成器 - 批量生成送货单和送货单明细二维码">
     <title>送货单 QR Code 生成器</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="enhancements.css">
     <script src="qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- PDF导出库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- ZIP打包库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- 文件保存库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
 
 <body>
@@ -54,7 +61,7 @@
                                         <path d="M14 2v6h6" stroke="currentColor" stroke-width="2"
                                             stroke-linecap="round" />
                                     </svg>
-                                    下载送货单模板
+                                    下载送货单表头模板
                                 </button>
                                 <label class="import-btn">
                                     <input type="file" id="importDnFile" accept=".xlsx,.xls,.csv"
@@ -64,7 +71,7 @@
                                             stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                             stroke-linejoin="round" />
                                     </svg>
-                                    导入送货单数据
+                                    导入送货单表头数据
                                 </label>
                             </div>
 
@@ -147,7 +154,7 @@
                         </svg>
                     </div>
                     <div>
-                        <h2>送货单 QR Code</h2>
+                        <h2>送货单表头 QR Code</h2>
                         <p>DN QR Code - 包含3种信息（批量输入）</p>
                     </div>
                 </div>
@@ -242,6 +249,37 @@
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                         全部下载
+                    </button>
+                    <button class="download-all-btn" id="copyAllDn" disabled>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2" />
+                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor"
+                                stroke-width="2" />
+                        </svg>
+                        复制所有
+                    </button>
+                    <button class="download-all-btn" id="exportSvgDn" disabled>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor"
+                                stroke-width="2" />
+                            <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" />
+                        </svg>
+                        导出SVG
+                    </button>
+                    <button class="download-all-btn" id="exportZipDn" disabled>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2" />
+                            <rect x="3" y="5" width="18" height="8" stroke="currentColor" stroke-width="2" />
+                            <path d="M8 9h8M8 11h8" stroke="currentColor" stroke-width="2" />
+                        </svg>
+                        ZIP打包
+                    </button>
+                    <button class="add-row-btn danger-outline" id="clearAllDn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                                stroke="currentColor" stroke-width="2" />
+                        </svg>
+                        清空数据
                     </button>
                 </div>
             </section>
@@ -358,8 +396,97 @@
                         </svg>
                         全部下载
                     </button>
+                    <button class="download-all-btn detail-download-all" id="copyAllDetail" disabled>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2" />
+                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor"
+                                stroke-width="2" />
+                        </svg>
+                        复制所有
+                    </button>
+                    <button class="download-all-btn detail-download-all" id="exportSvgDetail" disabled>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor"
+                                stroke-width="2" />
+                            <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" />
+                        </svg>
+                        导出SVG
+                    </button>
+                    <button class="download-all-btn detail-download-all" id="exportZipDetail" disabled>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2" />
+                            <rect x="3" y="5" width="18" height="8" stroke="currentColor" stroke-width="2" />
+                            <path d="M8 9h8M8 11h8" stroke="currentColor" stroke-width="2" />
+                        </svg>
+                        ZIP打包
+                    </button>
+                    <button class="add-row-btn danger-outline" id="clearAllDetail">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                                stroke="currentColor" stroke-width="2" />
+                        </svg>
+                        清空数据
+                    </button>
                 </div>
             </section>
+
+            <!-- QR码预览模态框 -->
+            <div class="modal" id="qrPreviewModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">二维码预览</h3>
+                        <button class="modal-close" id="closeModal">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <canvas id="previewCanvas" class="preview-canvas"></canvas>
+                        <div class="preview-info">
+                            <p class="preview-content-label">包含内容：</p>
+                            <p class="preview-content-text" id="previewContent"></p>
+                        </div>
+                        <div class="preview-actions">
+                            <button class="modal-btn primary" id="modalCopy">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor"
+                                        stroke-width="2" />
+                                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor"
+                                        stroke-width="2" />
+                                </svg>
+                                复制
+                            </button>
+                            <button class="modal-btn" id="modalDownload">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                </svg>
+                                下载
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 确认对话框 -->
+            <div class="modal" id="confirmModal">
+                <div class="modal-content confirm-dialog">
+                    <h3 class="modal-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: #f59e0b;">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                            <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                        确认操作
+                    </h3>
+                    <p class="confirm-message" id="confirmMessage"></p>
+                    <div class="confirm-actions">
+                        <button class="modal-btn" id="confirmCancel">取消</button>
+                        <button class="modal-btn danger" id="confirmOk">确定</button>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <footer class="footer">
@@ -374,6 +501,7 @@
         </footer>
     </div>
 
+    <script src="enhancements.js"></script>
     <script src="script.js"></script>
 </body>
 

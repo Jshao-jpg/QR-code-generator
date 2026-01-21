@@ -1,0 +1,134 @@
+/* ================================================
+   阶段1新增功能样式
+   ================================================ */
+
+/* danger-outline 按钮 */
+.danger-outline {
+    background: transparent !important;
+    color: #ef4444 !important;
+    border: 2px solid #ef4444 !important;
+}
+
+.danger-outline:hover:not(:disabled) {
+    background: #ef4444 !important;
+    color: white !important;
+}
+
+/* 模态框覆盖优化 */
+.modal {
+    backdrop-filter: blur(8px);
+}
+
+.modal.show .modal-content {
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 预览信息区域 */
+.preview-info {
+    margin: var(--spacing-md) 0;
+    padding: var(--spacing-md);
+    background: rgba(15, 23, 42, 0.3);
+    border-radius: var(--radius-sm);
+}
+
+.preview-content-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+    font-weight: 500;
+}
+
+.preview-content-text {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    word-break: break-all;
+    line-height: 1.6;
+}
+
+/* 确认对话框 */
+.confirm-dialog {
+    max-width: 400px;
+}
+
+.confirm-message {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: var(--spacing-lg) 0;
+    font-size: 0.95rem;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+}
+
+.confirm-actions .modal-btn {
+    flex: 1;
+}
+
+/* 表格输入错误状态 */
+.table-input.error {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+    animation: shake 0.3s;
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+/* Toast增强 */
+.toast.error {
+    background: #ef4444;
+}
+
+.toast.success {
+    background: #10b981;
+}
+
+.toast.warning {
+    background: #f59e0b;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .table-actions {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .preview-actions,
+    .confirm-actions {
+        flex-direction: column;
+    }
+
+    .preview-actions .modal-btn,
+    .confirm-actions .modal-btn {
+        width: 100%;
+    }
+}
