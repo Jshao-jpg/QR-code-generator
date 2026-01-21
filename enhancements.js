@@ -498,4 +498,53 @@ function clearAllDetailData(detailTableBody) {
     });
 }
 
-console.log('✅ QR码生成器增强功能模块已加载 (含Auto-Save)');
+
+// ========================
+// 功能9: PWA 安装支持
+// ========================
+
+let deferredInstallPrompt = null;
+const installBtn = document.getElementById('installAppBtn');
+
+// 1. 监听安装事件（浏览器认为可以安装时触发）
+window.addEventListener('beforeinstallprompt', (e) => {
+    // 防止 Chrome 67 及更早版本自动显示提示
+    e.preventDefault();
+    // 保存事件以便稍后触发
+    deferredInstallPrompt = e;
+    // 更新 UI 通知用户可以添加到主屏幕
+    if (installBtn) {
+        installBtn.style.display = 'flex';
+        console.log('📱 PWA Install capability detected - Install button shown');
+    }
+});
+
+// 2. 处理点击安装
+if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+        if (!deferredInstallPrompt) return;
+
+        // 显示安装提示
+        deferredInstallPrompt.prompt();
+
+        // 等待用户响应
+        const { outcome } = await deferredInstallPrompt.userChoice;
+        console.log(`User response to install prompt: ${outcome}`);
+
+        // 只能使用一次
+        deferredInstallPrompt = null;
+
+        // 如果已安装，隐藏按钮
+        if (outcome === 'accepted') {
+            installBtn.style.display = 'none';
+        }
+    });
+}
+
+// 3. 监听安装完成事件
+window.addEventListener('appinstalled', () => {
+    console.log('✅ PWA App installed successfully');
+    if (installBtn) installBtn.style.display = 'none';
+});
+
+console.log('✅ QR码生成器增强功能模块已加载 (含Auto-Save & PWA)');

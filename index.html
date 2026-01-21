@@ -8,14 +8,14 @@
     <title>送货单 QR Code 生成器</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="enhancements.css">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
     <script src="qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- PDF导出库 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- ZIP打包库 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- 文件保存库 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- 本地离线库 -->
+    <script src="libs/xlsx.full.min.js"></script>
+    <script src="libs/jszip.min.js"></script>
+    <script src="libs/FileSaver.min.js"></script>
 </head>
 
 <body>
@@ -34,6 +34,14 @@
             </div>
             <h1>送货单 QR Code 生成器</h1>
             <p class="subtitle">Delivery Note QR Code Generator - 支持批量生成</p>
+            <button id="installAppBtn" class="install-app-btn" style="display: none;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                安装到桌面
+            </button>
         </header>
 
         <!-- 导入功能区域 -->
@@ -503,6 +511,15 @@
 
     <script src="enhancements.js"></script>
     <script src="script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed: ', err));
+            });
+        }
+    </script>
 </body>
 
 </html>
