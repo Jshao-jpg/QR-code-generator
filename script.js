@@ -1,4 +1,4 @@
-﻿/**
+/**
  * QR Code Generator - Batch Mode Script
  * 送货单二维码生成器 - 批量模式
  * Using qrcode-generator library
@@ -742,9 +742,6 @@ document.getElementById('importDetailFile').addEventListener('change', function 
 
     // 2. 初始化新按钮事件 (DN)
     const dnBody = document.getElementById('dnTableBody');
-    const copyAllDn = document.getElementById('copyAllDn');
-    if (copyAllDn) copyAllDn.addEventListener('click', () => copyAllQrCodes(dnBody));
-
     const exportReportDn = document.getElementById('exportReportDn');
     if (exportReportDn) exportReportDn.addEventListener('click', () => exportDataReport(dnBody, 'DN'));
 
@@ -753,9 +750,6 @@ document.getElementById('importDetailFile').addEventListener('change', function 
 
     // 3. 初始化新按钮事件 (Detail)
     const detailBody = document.getElementById('detailTableBody');
-    const copyAllDetail = document.getElementById('copyAllDetail');
-    if (copyAllDetail) copyAllDetail.addEventListener('click', () => copyAllQrCodes(detailBody));
-
     const exportReportDetail = document.getElementById('exportReportDetail');
     if (exportReportDetail) exportReportDetail.addEventListener('click', () => exportDataReport(detailBody, 'Detail'));
 
@@ -849,9 +843,7 @@ function _executeGenerateAllDn(rows) {
     if (successCount > 0) {
         document.getElementById('downloadAllDn').disabled = false;
         // Enable new buttons
-        const copyAllDn = document.getElementById('copyAllDn');
         const exportReportDn = document.getElementById('exportReportDn');
-        if (copyAllDn) copyAllDn.disabled = false;
         if (exportReportDn) exportReportDn.disabled = false;
         showToast(`成功生成 ${successCount} 个二维码`, 'success');
     } else {
@@ -947,9 +939,7 @@ function _executeGenerateAllDetail(rows) {
     if (successCount > 0) {
         document.getElementById('downloadAllDetail').disabled = false;
         // Enable new buttons
-        const copyAllDetail = document.getElementById('copyAllDetail');
         const exportReportDetail = document.getElementById('exportReportDetail');
-        if (copyAllDetail) copyAllDetail.disabled = false;
         if (exportReportDetail) exportReportDetail.disabled = false;
 
         showToast(`成功生成 ${successCount} 个二维码`, 'success');

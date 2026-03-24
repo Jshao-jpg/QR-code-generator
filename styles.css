@@ -701,9 +701,25 @@ body::before {
 /* Table Actions */
 .table-actions {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: var(--spacing-md);
     margin-top: var(--spacing-lg);
     flex-wrap: wrap;
+}
+
+.actions-left {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.actions-right {
+    display: flex;
+    justify-content: flex-end;
+    flex: 1;
+    margin-right: 50px; /* Offset to align more accurately under the QR Code column */
 }
 
 .add-row-btn {

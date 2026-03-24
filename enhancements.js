@@ -166,154 +166,138 @@ function closeQrPreview() {
     const modal = document.getElementById('qrPreviewModal');
     modal.classList.remove('show');
     document.body.style.overflow = '';
-    currentPreviewCanvas = null;
 }
 
 // ========================
-// 功能5: 批量复制（网格）
+// 功能6: 数据报表导出 (.xlsx 格式)
 // ========================
 
 /**
- * 将所有QR码组成网格复制到剪贴板
- */
-async function copyAllQrCodes(tableBody) {
-    const canvases = tableBody.querySelectorAll('.qr-canvas.visible');
-
-    if (canvases.length === 0) {
-        showToast('没有可复制的二维码', 'error');
-        return;
-    }
-
-    try {
-        const cols = Math.min(4, canvases.length);
-        const rows = Math.ceil(canvases.length / cols);
-        const qrSize = 300;
-        const padding = 20;
-
-        const gridCanvas = document.createElement('canvas');
-        gridCanvas.width = cols * (qrSize + padding) + padding;
-        gridCanvas.height = rows * (qrSize + padding) + padding;
-
-        const ctx = gridCanvas.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, gridCanvas.width, gridCanvas.height);
-
-        canvases.forEach((canvas, index) => {
-            const row = Math.floor(index / cols);
-            const col = index % cols;
-            const x = col * (qrSize + padding) + padding;
-            const y = row * (qrSize + padding) + padding;
-            ctx.drawImage(canvas, x, y, qrSize, qrSize);
-        });
-
-        const blob = await new Promise(resolve => {
-            gridCanvas.toBlob(resolve, 'image/png');
-        });
-
-        await navigator.clipboard.write([
-            new ClipboardItem({ 'image/png': blob })
-        ]);
-
-        showToast(`✅ 已复制 ${canvases.length} 个二维码到剪贴板`, 'success');
-    } catch (error) {
-        console.error('Copy all error:', error);
-        showToast('复制失败，请检查浏览器权限', 'error');
-    }
-}
-
-// ========================
-// 功能6: 数据报表导出 (Excel格式)
-// ========================
-
-/**
- * 导出数据报表 (包含标题、信息和二维码图片)
- * 使用 HTML 转 Excel 方案以支持图片展示
+ * 使用 ExcelJS 导出真正的 .xlsx 格式报表（支持嵌入图片且无警告）
  */
 async function exportDataReport(tableBody, type) {
     const rows = tableBody.querySelectorAll('tr');
-    const visibleCanvases = tableBody.querySelectorAll('.qr-canvas.visible');
+    const canvases = tableBody.querySelectorAll('.qr-canvas.visible');
 
-    if (visibleCanvases.length === 0) {
+    if (canvases.length === 0) {
         showToast('请先生成二维码再导出报表', 'error');
         return;
     }
 
-    const title = type === 'DN' ?
-        '送货单表头数据报表 (DN Header Data Report)' :
-        '送货单明细数据报表 (DN Detail Data Report)';
-    const filename = `${type}_Report_${new Date().toLocaleDateString().replace(/\//g, '-')}.xls`;
-
-    // 构建 HTML 表格字符串
-    // 使用 mso-number-format:"\@" 确保所有内容被 Excel 识别为文本，防止自动进位或添加数字
-    let html = `
-    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <style>
-            table { border-collapse: collapse; }
-            th, td { border: 0.5pt solid #000; padding: 5px; text-align: center; vertical-align: middle; }
-            .header-title { font-size: 16pt; font-weight: bold; height: 40px; background-color: #f8f9fa; }
-            .meta-info { color: #666; font-size: 9pt; height: 25px; }
-            .qr-img { width: 100px; height: 100px; }
-            th { background-color: #e9ecef; font-weight: bold; }
-            .text-cell { mso-number-format:"\\@"; }
-            .num-cell { mso-number-format:"0"; }
-        </style>
-    </head>
-    <body>
-        <table>
-            <tr><td colspan="${type === 'DN' ? 5 : 7}" class="header-title">${title}</td></tr>
-            <tr><td colspan="${type === 'DN' ? 5 : 7}" class="meta-info">生成时间: ${new Date().toLocaleString()} | 送货单 QR Code 生成器 (QR Code General)</td></tr>
-            <tr></tr> <!-- 空行 -->
-            <tr style="background-color: #f2f2f2; font-weight: bold;">
-                <th style="width: 50px;">#</th>
-                ${type === 'DN' ? `
-                    <th style="width: 150px;">DN No.<br>送货单号</th>
-                    <th style="width: 120px;">Vendor ID<br>供应商ID</th>
-                    <th style="width: 150px;">PO No.<br>采购单号</th>
-                ` : `
-                    <th style="width: 150px;">Full PO No.<br>完整采购单号</th>
-                    <th style="width: 80px;">Qty<br>数量</th>
-                    <th style="width: 80px;">Unit<br>单位</th>
-                    <th style="width: 120px;">Unique ID<br>流水号</th>
-                    <th style="width: 150px;">PN<br>零件编号</th>
-                `}
-                <th style="width: 120px;">QR Code<br>二维码</th>
-            </tr>
-    `;
-
-    rows.forEach((row, index) => {
-        const canvas = row.querySelector('.qr-canvas');
-        if (canvas && canvas.classList.contains('visible')) {
-            const inputs = Array.from(row.querySelectorAll('input.table-input'));
-            const rowData = inputs.map(input => input.value);
-            const qrBase64 = canvas.toDataURL('image/png');
-
-            html += `
-                <tr>
-                    <td class="num-cell">${index + 1}</td>
-                    ${rowData.map(val => `<td class="text-cell">${val || ''}</td>`).join('')}
-                    <td style="height: 110px; width: 110px;">
-                        <img src="${qrBase64}" class="qr-img" width="100" height="100">
-                    </td>
-                </tr>
-            `;
-        }
-    });
-
-    html += `
-        </table>
-    </body>
-    </html>
-    `;
+    showToast('正在生成报表...', 'info');
 
     try {
-        const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
-        saveAs(blob, filename);
-        showToast('✅ 报表导出完成', 'success');
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet(type === 'DN' ? 'DN Header' : 'DN Detail');
+
+        const title = type === 'DN' ? 
+            '送货单表头数据报表 (DN Header Data Report)' : 
+            '送货单明细数据报表 (DN Detail Data Report)';
+
+        // 基础配置
+        const colCount = type === 'DN' ? 5 : 7;
+        
+        // 1. 添加标题行
+        const titleRow = worksheet.addRow([title]);
+        worksheet.mergeCells(1, 1, 1, colCount);
+        titleRow.height = 35;
+        titleRow.font = { size: 16, bold: true };
+        titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
+        titleRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
+
+        // 2. 添加元信息行
+        const metaInfo = `生成时间: ${new Date().toLocaleString()} | 送货单 QR Code 生成器 (QR Code General)`;
+        const metaRow = worksheet.addRow([metaInfo]);
+        worksheet.mergeCells(2, 1, 2, colCount);
+        metaRow.height = 20;
+        metaRow.font = { size: 10, color: { argb: 'FF666666' } };
+        metaRow.alignment = { vertical: 'middle', horizontal: 'center' };
+
+        worksheet.addRow([]); // 空行
+
+        // 3. 设置表头
+        let headers = [];
+        let colWidths = [];
+
+        if (type === 'DN') {
+            headers = ['#', 'DN No.', 'Vendor ID', 'PO No.', 'QR Code'];
+            colWidths = [8, 25, 20, 25, 20];
+        } else {
+            headers = ['#', 'Full PO No.', 'Qty', 'Unit', 'Unique ID', 'PN', 'QR Code'];
+            colWidths = [8, 25, 12, 12, 20, 25, 20];
+        }
+
+        const headerRow = worksheet.addRow(headers);
+        headerRow.height = 25;
+        headerRow.eachCell((cell) => {
+            cell.font = { bold: true };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE9ECEF' } };
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' }
+            };
+        });
+
+        // 设置列宽
+        colWidths.forEach((width, i) => {
+            worksheet.getColumn(i + 1).width = width;
+        });
+
+        // 4. 填充数据
+        let rowIndex = 5;
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const canvas = row.querySelector('.qr-canvas');
+            if (!canvas || !canvas.classList.contains('visible')) continue;
+
+            const inputs = Array.from(row.querySelectorAll('input.table-input'));
+            const rowData = [i + 1, ...inputs.map(input => input.value || ''), '']; 
+            
+            const dataRow = worksheet.addRow(rowData);
+            dataRow.height = 95; // 增加行高以适应 100x100 的二维码
+            dataRow.eachCell((cell) => {
+                cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+            });
+
+            // 嵌入图片
+            try {
+                const base64 = canvas.toDataURL('image/png').split(',')[1];
+                const imageId = workbook.addImage({
+                    base64: base64,
+                    extension: 'png',
+                });
+
+                // 设置为正方形：计算居中偏移量或使用固定宽高
+                worksheet.addImage(imageId, {
+                    tl: { col: colCount - 1, row: rowIndex - 1, colOff: 15, rowOff: 5 },
+                    ext: { width: 120, height: 120 }, // 设置完全的正方形尺寸
+                    editAs: 'oneCell'
+                });
+            } catch (err) {
+                console.error('Image embedding error:', err);
+            }
+
+            rowIndex++;
+        }
+
+        // 5. 导出文件
+        const buffer = await workbook.xlsx.writeBuffer();
+        const filename = `${type}_Report_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`;
+        saveAs(new Blob([buffer]), filename);
+        
+        showToast('✅ 报表导出完成 (XLSX)', 'success');
     } catch (error) {
         console.error('Report export error:', error);
-        showToast('导出失败，请重试', 'error');
+        showToast('报表导出失败', 'error');
     }
 }
 
@@ -455,7 +439,7 @@ function clearAllDnData(dnTableBody) {
         updateRowNumbers(dnTableBody);
 
         // Disable buttons
-        ['downloadAllDn', 'copyAllDn', 'exportReportDn'].forEach(id => {
+        ['downloadAllDn', 'exportReportDn'].forEach(id => {
             const btn = document.getElementById(id);
             if (btn) btn.disabled = true;
         });
@@ -482,7 +466,7 @@ function clearAllDetailData(detailTableBody) {
         updateRowNumbers(detailTableBody);
 
         // Disable buttons
-        ['downloadAllDetail', 'copyAllDetail', 'exportReportDetail'].forEach(id => {
+        ['downloadAllDetail', 'exportReportDetail'].forEach(id => {
             const btn = document.getElementById(id);
             if (btn) btn.disabled = true;
         });
