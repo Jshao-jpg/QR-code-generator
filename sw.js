@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qr-generator-v2';
+const CACHE_NAME = 'qr-generator-v3';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -8,6 +8,7 @@ const ASSETS_TO_CACHE = [
     './enhancements.js',
     './qrcode.min.js',
     './libs/xlsx.full.min.js',
+    './libs/exceljs.min.js',
     './libs/jszip.min.js',
     './libs/FileSaver.min.js',
     './libs/app-icon.png',
