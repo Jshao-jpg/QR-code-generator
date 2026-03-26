@@ -70,14 +70,14 @@ async function exportUnifiedReport() {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('送货单');
         
-        // 1. Setup Columns (Matching template appearance)
+        // 1. Setup Columns (Matching template appearance, optimized for A4 print)
         worksheet.columns = [
-            { header: '', key: 'col1', width: 12 }, // A: 序号
-            { header: '', key: 'col2', width: 25 }, // B: 采购单号
-            { header: '', key: 'col3', width: 25 }, // C: 客户料号
-            { header: '', key: 'col4', width: 12 }, // D: 数量
-            { header: '', key: 'col5', width: 10 }, // E: 单位
-            { header: '', key: 'col6', width: 22 }, // F: 二维码
+            { header: '', key: 'col1', width: 10.8 }, // A: 序号 (Reduced by 1/10)
+            { header: '', key: 'col2', width: 12.5 }, // B: 采购单号 (Reduced by 1/2)
+            { header: '', key: 'col3', width: 16.7 }, // C: 客户料号 (Reduced by 1/3)
+            { header: '', key: 'col4', width: 6 }, // D: 数量 (Reduced by 1/2)
+            { header: '', key: 'col5', width: 5 }, // E: 单位 (Reduced by 1/2)
+            { header: '', key: 'col6', width: 14.7 }, // F: 二维码 (Reduced by 1/3)
             { header: '', key: 'col7', width: 15 }, // G: 备注
             { header: '', key: 'col8', width: 15 }  // H: (Info Column)
         ];
@@ -177,7 +177,7 @@ async function exportUnifiedReport() {
 
             const dataRow = worksheet.getRow(currentRow);
             dataRow.values = [i + 1, po, pn, qty, unit, '', ''];
-            dataRow.height = 99; // 稍微减小行高，微调二维码下边距
+            dataRow.height = 74.5; // 二维码所在行的行高缩小4分之一 (99 -> 74.5)
             dataRow.eachCell((cell, colNum) => {
                 if (colNum <= 7) {
                     cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
@@ -196,8 +196,8 @@ async function exportUnifiedReport() {
                 const imgId = workbook.addImage({ base64, extension: 'png' });
                 worksheet.addImage(imgId, {
                     tl: { 
-                        nativeCol: 5, nativeColOff: 48 * 9525, // 48px right
-                        nativeRow: currentRow - 1, nativeRowOff: 8 * 9525 // 8px down
+                        nativeCol: 5, nativeColOff: 17 * 9525, // Updated for shrunken column F (14.7 width)
+                        nativeRow: currentRow - 1, nativeRowOff: 14 * 9525 // Updated for shrunken row height (74.5)
                     },
                     ext: { width: 70, height: 70 },
                     editAs: 'oneCell'
