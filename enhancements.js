@@ -75,9 +75,9 @@ async function exportUnifiedReport() {
             { header: '', key: 'col1', width: 10.8 }, // A: 序号 (Reduced by 1/10)
             { header: '', key: 'col2', width: 12.5 }, // B: 采购单号 (Reduced by 1/2)
             { header: '', key: 'col3', width: 16.7 }, // C: 客户料号 (Reduced by 1/3)
-            { header: '', key: 'col4', width: 6 }, // D: 数量 (Reduced by 1/2)
-            { header: '', key: 'col5', width: 5 }, // E: 单位 (Reduced by 1/2)
-            { header: '', key: 'col6', width: 14.7 }, // F: 二维码 (Reduced by 1/3)
+            { header: '', key: 'col4', width: 8 }, // D: 数量 (Increased from 6)
+            { header: '', key: 'col5', width: 6.7 }, // E: 单位 (Increased from 5)
+            { header: '', key: 'col6', width: 11 }, // F: 二维码 (Increased by 1/8 from 9.8)
             { header: '', key: 'col7', width: 15 }, // G: 备注
             { header: '', key: 'col8', width: 15 }  // H: (Info Column)
         ];
@@ -196,8 +196,8 @@ async function exportUnifiedReport() {
                 const imgId = workbook.addImage({ base64, extension: 'png' });
                 worksheet.addImage(imgId, {
                     tl: { 
-                        nativeCol: 5, nativeColOff: 17 * 9525, // Updated for shrunken column F (14.7 width)
-                        nativeRow: currentRow - 1, nativeRowOff: 14 * 9525 // Updated for shrunken row height (74.5)
+                        nativeCol: 5, nativeColOff: 4 * 9525, // F column width is ~77px now, slight margin
+                        nativeRow: currentRow - 1, nativeRowOff: 14 * 9525 // Center vertically in 74.5 point row
                     },
                     ext: { width: 70, height: 70 },
                     editAs: 'oneCell'

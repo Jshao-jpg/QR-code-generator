@@ -118,10 +118,11 @@ function findDuplicates(rows) {
         const qty = row.querySelector('.qty').value.trim();
         const unit = row.querySelector('.unit').value.trim();
         const pn = row.querySelector('.pn').value.trim();
+        const id = row.querySelector('.unique-id').value.trim(); // 引入流水号参与查重
         
         if (!po && !qty) continue;
 
-        const key = `${po}|${qty}|${unit}|${pn}`;
+        const key = `${po}|${qty}|${unit}|${pn}|${id}`;
         if (seen.has(key)) {
             return { row1: seen.get(key) + 1, row2: i + 1 };
         }
@@ -441,6 +442,38 @@ document.addEventListener('DOMContentLoaded', () => {
             link.href = currentPreviewCanvas.toDataURL();
             link.click();
         }
+    });
+
+    // PWA Install Logic
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent the mini-infobar from appearing on mobile
+        e.preventDefault();
+        // Stash the event so it can be triggered later.
+        deferredPrompt = e;
+        // Update UI notify the user they can install the PWA
+        const installBtn = document.getElementById('installAppBtn');
+        if (installBtn) {
+            installBtn.style.display = 'flex';
+            installBtn.addEventListener('click', async () => {
+                // Hide the app provided install promotion
+                installBtn.style.display = 'none';
+                // Show the install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                // We've used the prompt, and can't use it again, throw it away
+                deferredPrompt = null;
+            });
+        }
+    });
+
+    // Optionally handle the appinstalled event
+    window.addEventListener('appinstalled', () => {
+        const installBtn = document.getElementById('installAppBtn');
+        if(installBtn) installBtn.style.display = 'none';
+        console.log('PWA was installed');
     });
 
     console.log('Unified QR Generator (Dual-Table) Ready.');
