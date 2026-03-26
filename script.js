@@ -1,96 +1,86 @@
 /**
- * QR Code Generator - Batch Mode Script
- * 送货单二维码生成器 - 批量模式
- * Using qrcode-generator library
+ * QR Code Generator - Unified Send Goods Script
+ * 送货单二维码生成器 - 统一工作流 (表头与明细双表格模式)
  */
+
+// ============================================
+// Global Element References
+// ============================================
+
+const headerTableBody = document.getElementById('headerTableBody');
+const detailTableBody = document.getElementById('detailTableBody');
+
+// Buttons
+const addDetailRowBtn = document.getElementById('addDetailRow');
+const generateAllUnifiedBtn = document.getElementById('generateAllUnified');
+const downloadAllUnifiedBtn = document.getElementById('downloadAllUnified');
+const exportUnifiedReportBtn = document.getElementById('exportUnifiedReport');
+const clearAllUnifiedBtn = document.getElementById('clearAllUnified');
+const unifiedParsePasteBtn = document.getElementById('unifiedParsePaste');
 
 // ============================================
 // Utility Functions
 // ============================================
 
-/**
- * Sanitize input - Remove extra semicolons and normalize
- * @param {string} input - User input string
- * @returns {string} - Sanitized string
- */
 function sanitizeInput(input) {
     if (!input) return '';
-    let sanitized = input.trim();
-    sanitized = sanitized.replace(/；/g, ';');
-    sanitized = sanitized.replace(/;+/g, ';');
-    sanitized = sanitized.replace(/^;+|;+$/g, '');
-    return sanitized;
+    return input.trim().replace(/；/g, ';').replace(/;+/g, ';').replace(/^;+|;+$/g, '');
 }
 
-/**
- * Show toast notification
- * @param {string} message - Message to display
- * @param {string} type - 'success' or 'error'
- */
 function showToast(message, type = 'success') {
     const existingToast = document.querySelector('.toast');
     if (existingToast) existingToast.remove();
-
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.textContent = message;
     document.body.appendChild(toast);
-
     setTimeout(() => toast.classList.add('show'), 10);
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    }, 4000);
 }
 
-/**
- * Generate filename for download based on QR content
- * @param {string} content - QR Code content
- * @param {string} prefix - Filename prefix
- * @returns {string} - Generated filename
- */
 function generateFilename(content, prefix) {
-    const parts = content.split(';');
-    const identifier = parts[0] || 'QRCode';
-    const cleanIdentifier = identifier.replace(/[<>:"/\\|?*]/g, '_');
-    return `${prefix}_${cleanIdentifier}.png`;
+    const identifier = content.split(';')[0] || 'QR';
+    return `${prefix}_${identifier.replace(/[<>:"/\\|?*]/g, '_')}.png`;
 }
 
-/**
- * Update row numbers in a table
- * @param {HTMLElement} tbody - Table body element
- */
 function updateRowNumbers(tbody) {
     const rows = tbody.querySelectorAll('tr');
     rows.forEach((row, index) => {
-        row.querySelector('.row-num').textContent = index + 1;
+        const numCell = row.querySelector('.row-num');
+        if (numCell) numCell.textContent = index + 1;
     });
 }
 
-/**
- * Draw QR Code on canvas using qrcode-generator library
- * @param {string} text - Text to encode
- * @param {HTMLCanvasElement} canvas - Canvas element
- */
+function generateSequentialId(index) {
+    const now = new Date();
+    const yy = String(now.getFullYear()).slice(-2);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const sequence = String(index + 1).padStart(3, '0');
+    return `${yy}${mm}${dd}${sequence}`;
+}
+
+function refreshDetailIds() {
+    const rows = detailTableBody.querySelectorAll('tr');
+    rows.forEach((row, index) => {
+        const idInput = row.querySelector('.unique-id');
+        if (idInput) idInput.value = generateSequentialId(index);
+    });
+}
+
 function drawQRCode(text, canvas) {
-    // Create QR code object
-    const qr = qrcode(0, 'M'); // type number, error correction level
+    const qr = qrcode(0, 'M');
     qr.addData(text);
     qr.make();
-
-    // Get module count
     const moduleCount = qr.getModuleCount();
     const cellSize = canvas.width / moduleCount;
-
-    // Get canvas context
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw white background
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Draw QR code modules
     ctx.fillStyle = '#000000';
     for (let row = 0; row < moduleCount; row++) {
         for (let col = 0; col < moduleCount; col++) {
@@ -101,849 +91,357 @@ function drawQRCode(text, canvas) {
     }
 }
 
-// ============================================
-// DN QR Code Functions
-// ============================================
-
-const dnTableBody = document.getElementById('dnTableBody');
-const addDnRowBtn = document.getElementById('addDnRow');
-const generateAllDnBtn = document.getElementById('generateAllDn');
-const downloadAllDnBtn = document.getElementById('downloadAllDn');
-
 /**
- * Create a new DN table row HTML
- * @returns {string} - HTML string
+ * Validation Logic
  */
-function createDnRowHTML() {
-    return `
-        <tr>
-            <td class="row-num">1</td>
-            <td><input type="text" class="table-input dn-no" placeholder="如DN20250418001"></td>
-            <td><input type="text" class="table-input vendor-id" placeholder="如7016"></td>
-            <td><input type="text" class="table-input po-no" placeholder="如263275"></td>
-            <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
-            <td class="action-cell">
-                <button class="btn-icon copy-row" title="复制" disabled>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2"/></svg>
-                </button>
-                <button class="btn-icon download-row" title="下载" disabled>
-                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-                <button class="btn-icon delete-row" title="删除行">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                </button>
-            </td>
-        </tr>
-    `;
+function validateRow(po, qty) {
+    // 只要包含两个-且-前后都有内容就可以
+    const poRegex = /^[^-]+-[^-]+-[^-]+$/;
+    if (!poRegex.test(po)) {
+        return { valid: false, message: `采购单号格式不正确: ${po} (应包含两个'-'且前后有内容)` };
+    }
+    const qtyVal = parseFloat(qty);
+    if (isNaN(qtyVal) || qtyVal <= 0) {
+        return { valid: false, message: `数量必须为大于0的数字: ${qty}` };
+    }
+    return { valid: true };
 }
 
 /**
- * Add a new row to DN table
+ * Duplicate Detection Logic
  */
-function addDnRow() {
-    const newRow = document.createElement('tr');
-    newRow.innerHTML = createDnRowHTML().replace(/<tr>|<\/tr>/g, '');
-    dnTableBody.appendChild(newRow);
-    updateRowNumbers(dnTableBody);
-    attachDnRowEvents(newRow);
+function findDuplicates(rows) {
+    const seen = new Map();
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const po = row.querySelector('.full-po-no').value.trim();
+        const qty = row.querySelector('.qty').value.trim();
+        const unit = row.querySelector('.unit').value.trim();
+        const pn = row.querySelector('.pn').value.trim();
+        
+        if (!po && !qty) continue;
+
+        const key = `${po}|${qty}|${unit}|${pn}`;
+        if (seen.has(key)) {
+            return { row1: seen.get(key) + 1, row2: i + 1 };
+        }
+        seen.set(key, i);
+    }
+    return null;
 }
 
-/**
- * Attach events to a DN row
- * @param {HTMLElement} row - Table row element
- */
-function attachDnRowEvents(row) {
-    const deleteBtn = row.querySelector('.delete-row');
+// ============================================
+// Core Logic Functions
+// ============================================
+
+function attachRowEvents(row, tbody) {
     const downloadBtn = row.querySelector('.download-row');
     const copyBtn = row.querySelector('.copy-row');
+    const deleteBtn = row.querySelector('.delete-row');
+    const canvas = row.querySelector('.qr-canvas');
 
-    deleteBtn.addEventListener('click', () => {
-        if (dnTableBody.querySelectorAll('tr').length > 1) {
-            row.remove();
-            updateRowNumbers(dnTableBody);
-        } else {
-            showToast('至少保留一行', 'error');
-        }
-    });
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', () => {
+            if (!canvas.dataset.content) return;
+            const link = document.createElement('a');
+            link.download = generateFilename(canvas.dataset.content, 'QR');
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    }
 
-    downloadBtn.addEventListener('click', () => {
-        const canvas = row.querySelector('.qr-canvas');
-        if (canvas.classList.contains('visible')) {
-            const content = canvas.dataset.content;
-            downloadQrCode(canvas, content, 'DN');
-        }
-    });
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+            if (!canvas.dataset.content) return;
+            try {
+                const blob = await new Promise(resolve => canvas.toBlob(resolve));
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                showToast('已复制到剪贴板', 'success');
+            } catch (err) { showToast('复制失败', 'error'); }
+        });
+    }
 
-    copyBtn.addEventListener('click', async () => {
-        const canvas = row.querySelector('.qr-canvas');
-        if (canvas.classList.contains('visible')) {
-            await copyQrCodeToClipboard(canvas);
-        }
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', () => {
+            if (tbody.children.length > 1) {
+                row.remove();
+                updateRowNumbers(tbody);
+                if (tbody === detailTableBody) refreshDetailIds();
+            } else {
+                row.querySelectorAll('input').forEach(i => i.value = '');
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                canvas.classList.remove('visible');
+                if (downloadBtn) downloadBtn.disabled = true;
+                if (copyBtn) copyBtn.disabled = true;
+                if (tbody === detailTableBody) refreshDetailIds();
+            }
+        });
+    }
+
+    // Preview
+    canvas.style.cursor = 'pointer';
+    canvas.addEventListener('click', () => {
+        if (canvas.classList.contains('visible')) showQrPreview(canvas);
     });
 }
 
-// Original generateAllDnQRCodes removed - Replaced by enhanced version at the bottom
-
-
-/**
- * Download all DN QR codes
- */
-function downloadAllDnQRCodes() {
-    const canvases = dnTableBody.querySelectorAll('.qr-canvas.visible');
-    canvases.forEach((canvas, index) => {
-        setTimeout(() => {
-            downloadQrCode(canvas, canvas.dataset.content, 'DN');
-        }, index * 200);
-    });
-    showToast(`正在下载 ${canvases.length} 个二维码...`, 'success');
+function addHeaderRow() {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td class="row-num"></td>
+        <td><input type="text" class="table-input dn-no" placeholder="如DN20250418001"></td>
+        <td><input type="text" class="table-input vendor-id" placeholder="如7016"></td>
+        <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
+        <td class="action-cell">
+            <div class="row-actions">
+                <button class="action-btn download-row" title="下载" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
+                <button class="action-btn copy-row" title="复制" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                <button class="action-btn delete-row" title="删除"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+            </div>
+        </td>`;
+    headerTableBody.appendChild(tr);
+    updateRowNumbers(headerTableBody);
+    attachRowEvents(tr, headerTableBody);
+    return tr;
 }
 
-// ============================================
-// Detail QR Code Functions
-// ============================================
-
-const detailTableBody = document.getElementById('detailTableBody');
-const addDetailRowBtn = document.getElementById('addDetailRow');
-const generateAllDetailBtn = document.getElementById('generateAllDetail');
-const downloadAllDetailBtn = document.getElementById('downloadAllDetail');
-
-/**
- * Create a new Detail table row HTML
- * @returns {string} - HTML string
- */
-function createDetailRowHTML() {
-    return `
-        <tr>
-            <td class="row-num">1</td>
-            <td><input type="text" class="table-input full-po-no" placeholder="如263275-1-1"></td>
-            <td><input type="text" class="table-input qty" placeholder="如3"></td>
-            <td><input type="text" class="table-input unit" placeholder="如PC"></td>
-            <td><input type="text" class="table-input unique-id" placeholder="如250418003"></td>
-            <td><input type="text" class="table-input pn" placeholder="如MT4571-01-001"></td>
-            <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
-            <td class="action-cell">
-                <button class="btn-icon copy-row" title="复制" disabled>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2"/></svg>
-                </button>
-                <button class="btn-icon download-row" title="下载" disabled>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-                <button class="btn-icon delete-row" title="删除行">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                </button>
-            </td>
-        </tr>
-    `;
-}
-
-/**
- * Add a new row to Detail table
- */
 function addDetailRow() {
-    const newRow = document.createElement('tr');
-    newRow.innerHTML = createDetailRowHTML().replace(/<tr>|<\/tr>/g, '');
-    detailTableBody.appendChild(newRow);
+    const tr = document.createElement('tr');
+    const id = generateSequentialId(detailTableBody.children.length);
+    tr.innerHTML = `
+        <td class="row-num"></td>
+        <td><input type="text" class="table-input full-po-no" placeholder="如263275-1-1"></td>
+        <td><input type="text" class="table-input qty" placeholder="数量"></td>
+        <td><input type="text" class="table-input unit" placeholder="如PC"></td>
+        <td><input type="text" class="table-input unique-id" value="${id}" readonly></td>
+        <td><input type="text" class="table-input pn" placeholder="零件编号"></td>
+        <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
+        <td class="action-cell">
+            <div class="row-actions">
+                <button class="action-btn download-row" title="下载" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
+                <button class="action-btn copy-row" title="复制" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                <button class="action-btn delete-row" title="删除"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+            </div>
+        </td>`;
+    detailTableBody.appendChild(tr);
     updateRowNumbers(detailTableBody);
-    attachDetailRowEvents(newRow);
+    attachRowEvents(tr, detailTableBody);
+    return tr;
+}
+
+function generateAllUnifiedQRCodes() {
+    // 1. Validation & Duplicate Check
+    const dRows = Array.from(detailTableBody.querySelectorAll('tr'));
+    
+    // Check duplicates
+    const duplicate = findDuplicates(dRows);
+    if (duplicate) {
+        showToast(`第 ${duplicate.row1} 行与第 ${duplicate.row2} 行重复`, 'error');
+        return;
+    }
+
+    let validRows = [];
+    for (let i = 0; i < dRows.length; i++) {
+        const po = dRows[i].querySelector('.full-po-no').value.trim();
+        const qty = dRows[i].querySelector('.qty').value.trim();
+        if (!po && !qty) continue; // Skip empty rows
+        
+        const validation = validateRow(po, qty);
+        if (!validation.valid) {
+            showToast(`第 ${i+1} 行明细格式错误: ${validation.message}`, 'error');
+            return;
+        }
+        validRows.push(dRows[i]);
+    }
+
+    if (validRows.length === 0) {
+        showToast('请提供至少一行有效的明细数据', 'error');
+        return;
+    }
+
+    // 2. Generate Header QRCodes
+    const hRows = headerTableBody.querySelectorAll('tr');
+    const firstPo = dRows[0].querySelector('.full-po-no').value.trim().split('-')[0];
+    let hCount = 0;
+    hRows.forEach(row => {
+        const dn = row.querySelector('.dn-no').value.trim();
+        const vendor = row.querySelector('.vendor-id').value.trim();
+        const canvas = row.querySelector('.qr-canvas');
+        if (dn && vendor) {
+            const content = `${dn};${vendor};${firstPo}`;
+            canvas.width = 300; canvas.height = 300;
+            drawQRCode(content, canvas);
+            canvas.classList.add('visible');
+            canvas.dataset.content = content;
+            row.querySelector('.download-row').disabled = false;
+            row.querySelector('.copy-row').disabled = false;
+            hCount++;
+        }
+    });
+
+    // 3. Generate Detail QRCodes
+    let dCount = 0;
+    dRows.forEach(row => {
+        const po = row.querySelector('.full-po-no').value.trim();
+        const qty = row.querySelector('.qty').value.trim();
+        const unit = row.querySelector('.unit').value.trim();
+        const id = row.querySelector('.unique-id').value.trim();
+        const pn = row.querySelector('.pn').value.trim();
+        const canvas = row.querySelector('.qr-canvas');
+        
+        if (po && qty && unit && id && pn) {
+            const content = `${po};${qty};${unit};${id};${pn}`;
+            canvas.width = 300; canvas.height = 300;
+            drawQRCode(content, canvas);
+            canvas.classList.add('visible');
+            canvas.dataset.content = content;
+            row.querySelector('.download-row').disabled = false;
+            row.querySelector('.copy-row').disabled = false;
+            dCount++;
+        }
+    });
+
+    if (hCount > 0 || dCount > 0) {
+        showToast(`成功生成 ${hCount} 个表头和 ${dCount} 个明细二维码`, 'success');
+        checkUnifiedActionState();
+    } else {
+        showToast('生成失败，请检查数据完整性', 'error');
+    }
+}
+
+function checkUnifiedActionState() {
+    const hasAnyVisible = !!document.querySelector('.qr-canvas.visible');
+    downloadAllUnifiedBtn.disabled = !hasAnyVisible;
+    exportUnifiedReportBtn.disabled = !hasAnyVisible;
 }
 
 /**
- * Attach events to a Detail row
- * @param {HTMLElement} row - Table row element
+ * Recognition Principle (解析原理):
+ * 该功能通过启发式检测 (Heuristic Detection) 识别文本：
+ * 1. 它首先将输入的文本按行分割，并根据 Tab 或 多个连续空格进行列分割。
+ * 2. 它通过查找关键字 (如 "DN No", "送货单号", "Full PO No", "完整采购单号") 来识别“标题行”。
+ * 3. 一旦识别出标题行，它会切换工作模式 (HEADER 或 DETAIL) 并开始提取后续行为对应的数据列。
+ * 4. 即使你改变了标题内容，只要它不包含预设的关键字，系统会尝试基于其在文本流中的位置或前置标识符进行自适应匹配。
  */
-function attachDetailRowEvents(row) {
-    const deleteBtn = row.querySelector('.delete-row');
-    const downloadBtn = row.querySelector('.download-row');
-    const copyBtn = row.querySelector('.copy-row');
+function parseUnifiedPasteData() {
+    const pasteArea = document.getElementById('unifiedPasteArea');
+    const content = pasteArea.value.trim();
+    if (!content) return;
 
-    deleteBtn.addEventListener('click', () => {
-        if (detailTableBody.querySelectorAll('tr').length > 1) {
-            row.remove();
-            updateRowNumbers(detailTableBody);
+    const lines = content.split(/\r?\n/);
+    let currentMode = 'DETAIL'; // 默认进入明细模式
+    let headerData = [];
+    let detailData = [];
+
+    lines.forEach(line => {
+        const cols = line.split(/\t|\s{2,}/).map(c => c.trim()).filter(c => c);
+        if (cols.length === 0) return;
+
+        const firstCol = cols[0].toLowerCase();
+        // 关键字匹配模式切换
+        if (firstCol.includes('dn nos') || firstCol.includes('送货单号')) {
+            currentMode = 'HEADER'; return;
+        }
+        if (firstCol.includes('full po no') || firstCol.includes('完整采购单号')) {
+            currentMode = 'DETAIL'; return;
+        }
+
+        if (currentMode === 'HEADER' && cols.length >= 2) {
+            headerData.push(cols.slice(0, 2));
+        } else if (currentMode === 'DETAIL' && cols.length >= 3) {
+            detailData.push(cols);
+        } else if (cols[0].startsWith('DN')) { // 前缀启发式识别
+            headerData.push(cols.slice(0, 2));
         } else {
-            showToast('至少保留一行', 'error');
+            detailData.push(cols);
         }
     });
 
-    downloadBtn.addEventListener('click', () => {
-        const canvas = row.querySelector('.qr-canvas');
-        if (canvas.classList.contains('visible')) {
-            const content = canvas.dataset.content;
-            downloadQrCode(canvas, content, 'Detail');
-        }
-    });
+    if (headerData.length > 0) {
+        headerTableBody.innerHTML = '';
+        headerData.forEach(d => {
+            const r = addHeaderRow();
+            r.querySelector('.dn-no').value = d[0] || '';
+            r.querySelector('.vendor-id').value = d[1] || '';
+        });
+    }
 
-    copyBtn.addEventListener('click', async () => {
-        const canvas = row.querySelector('.qr-canvas');
-        if (canvas.classList.contains('visible')) {
-            await copyQrCodeToClipboard(canvas);
-        }
+    if (detailData.length > 0) {
+        detailTableBody.innerHTML = '';
+        detailData.forEach((d, i) => {
+            const r = addDetailRow();
+            r.querySelector('.full-po-no').value = d[0] || '';
+            r.querySelector('.qty').value = d[1] || '';
+            r.querySelector('.unit').value = d[2] || '';
+            r.querySelector('.pn').value = d[3] || '';
+        });
+        refreshDetailIds();
+    }
+
+    showToast(`解析成功：表头 ${headerData.length} 行，明细 ${detailData.length} 行`);
+    pasteArea.value = '';
+}
+
+function clearAllUnified() {
+    showConfirm('确定要清空送货单所有数据吗？', () => {
+        headerTableBody.innerHTML = '';
+        detailTableBody.innerHTML = '';
+        addHeaderRow();
+        addDetailRow();
+        checkUnifiedActionState();
+        showToast('数据已清空');
     });
 }
 
-// Original generateAllDetailQRCodes removed - Replaced by enhanced version at the bottom
-
-
-/**
- * Download all Detail QR codes
- */
-function downloadAllDetailQRCodes() {
-    const canvases = detailTableBody.querySelectorAll('.qr-canvas.visible');
-    canvases.forEach((canvas, index) => {
+function downloadAllUnified() {
+    const canvases = document.querySelectorAll('.qr-canvas.visible');
+    canvases.forEach((canvas, i) => {
         setTimeout(() => {
-            downloadQrCode(canvas, canvas.dataset.content, 'Detail');
-        }, index * 200);
+            const link = document.createElement('a');
+            link.download = generateFilename(canvas.dataset.content, 'QR');
+            link.href = canvas.toDataURL();
+            link.click();
+        }, i * 200);
     });
-    showToast(`正在下载 ${canvases.length} 个二维码...`, 'success');
 }
 
 // ============================================
-// Common Download Function
+// Initialization
 // ============================================
 
-/**
- * Copy QR Code to clipboard
- * @param {HTMLCanvasElement} canvas - Source canvas element
- */
-async function copyQrCodeToClipboard(canvas) {
-    try {
-        // Convert canvas to blob
-        const blob = await new Promise(resolve => {
-            canvas.toBlob(resolve, 'image/png');
-        });
+document.addEventListener('DOMContentLoaded', () => {
+    // Buttons
+    const addHeaderRowBtnLocal = document.getElementById('addHeaderRow');
+    const addDetailRowBtnLocal = document.getElementById('addDetailRowLocal');
+    
+    if (addHeaderRowBtnLocal) addHeaderRowBtnLocal.addEventListener('click', addHeaderRow);
+    if (addDetailRowBtnLocal) addDetailRowBtnLocal.addEventListener('click', addDetailRow);
+    if (addDetailRowBtn) addDetailRowBtn.addEventListener('click', addDetailRow);
+    if (generateAllUnifiedBtn) generateAllUnifiedBtn.addEventListener('click', generateAllUnifiedQRCodes);
+    if (downloadAllUnifiedBtn) downloadAllUnifiedBtn.addEventListener('click', downloadAllUnified);
+    if (clearAllUnifiedBtn) clearAllUnifiedBtn.addEventListener('click', clearAllUnified);
+    if (unifiedParsePasteBtn) unifiedParsePasteBtn.addEventListener('click', parseUnifiedPasteData);
 
-        // Check if Clipboard API is supported
-        if (!navigator.clipboard || !navigator.clipboard.write) {
-            showToast('您的浏览器不支持复制功能', 'error');
-            return;
+    // 初始状态：仅一行空数据，不保留历史记录
+    headerTableBody.innerHTML = '';
+    detailTableBody.innerHTML = '';
+    addHeaderRow();
+    addDetailRow();
+    refreshDetailIds();
+
+    // Modal Events
+    document.getElementById('closeModal')?.addEventListener('click', () => closeQrPreview());
+    document.getElementById('confirmCancel')?.addEventListener('click', () => closeConfirm(false));
+    document.getElementById('confirmOk')?.addEventListener('click', () => closeConfirm(true));
+
+    document.getElementById('modalDownload')?.addEventListener('click', () => {
+        if (currentPreviewCanvas) {
+            const link = document.createElement('a');
+            link.download = 'QR_Preview.png';
+            link.href = currentPreviewCanvas.toDataURL();
+            link.click();
         }
-
-        // Write to clipboard
-        await navigator.clipboard.write([
-            new ClipboardItem({
-                'image/png': blob
-            })
-        ]);
-
-        showToast('二维码已复制到剪贴板', 'success');
-    } catch (error) {
-        console.error('Copy error:', error);
-        showToast('复制失败，请使用下载功能', 'error');
-    }
-}
-
-/**
- * Download QR Code as PNG image
- * @param {HTMLCanvasElement} canvas - Source canvas element
- * @param {string} content - QR content for filename
- * @param {string} prefix - Filename prefix
- */
-function downloadQrCode(canvas, content, prefix) {
-    try {
-        const filename = generateFilename(content, prefix);
-        const dataUrl = canvas.toDataURL('image/png');
-
-        const link = document.createElement('a');
-        link.href = dataUrl;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    } catch (error) {
-        console.error('Download error:', error);
-        showToast('下载失败', 'error');
-    }
-}
-
-// ============================================
-// Paste & Parse Functions
-// ============================================
-
-/**
- * Parse pasted DN data and fill into table
- */
-function parseDnPasteData() {
-    const pasteArea = document.getElementById('dnPasteArea');
-    const text = pasteArea.value.trim();
-
-    if (!text) {
-        showToast('请先粘贴数据', 'error');
-        return;
-    }
-
-    // Split by lines
-    const lines = text.split(/\r?\n/).filter(line => line.trim());
-
-    if (lines.length === 0) {
-        showToast('没有有效数据', 'error');
-        return;
-    }
-
-    // Clear existing rows except first one
-    const existingRows = dnTableBody.querySelectorAll('tr');
-    existingRows.forEach((row, index) => {
-        if (index > 0) row.remove();
     });
 
-    let successCount = 0;
-
-    lines.forEach((line, index) => {
-        // Split by tab or multiple spaces (modified to support space separation)
-        const columns = line.trim().split(/\s+/);
-
-        // Need at least 3 columns for DN
-        if (columns.length < 3) {
-            return;
-        }
-
-        let targetRow;
-        if (index === 0) {
-            targetRow = dnTableBody.querySelector('tr');
-        } else {
-            addDnRow();
-            targetRow = dnTableBody.querySelectorAll('tr')[index];
-        }
-
-        const inputs = targetRow.querySelectorAll('input.table-input');
-        if (inputs[0]) inputs[0].value = columns[0] || '';
-        if (inputs[1]) inputs[1].value = columns[1] || '';
-        if (inputs[2]) inputs[2].value = columns[2] || '';
-
-        successCount++;
-    });
-
-    updateRowNumbers(dnTableBody);
-    pasteArea.value = '';
-    showToast(`成功填充 ${successCount} 行数据`, 'success');
-}
-
-/**
- * Parse pasted Detail data and fill into table
- */
-function parseDetailPasteData() {
-    const pasteArea = document.getElementById('detailPasteArea');
-    const text = pasteArea.value.trim();
-
-    if (!text) {
-        showToast('请先粘贴数据', 'error');
-        return;
-    }
-
-    // Split by lines
-    const lines = text.split(/\r?\n/).filter(line => line.trim());
-
-    if (lines.length === 0) {
-        showToast('没有有效数据', 'error');
-        return;
-    }
-
-    // Clear existing rows except first one
-    const existingRows = detailTableBody.querySelectorAll('tr');
-    existingRows.forEach((row, index) => {
-        if (index > 0) row.remove();
-    });
-
-    let successCount = 0;
-
-    lines.forEach((line, index) => {
-        // Split by tab or multiple spaces (modified to support space separation)
-        const columns = line.trim().split(/\s+/);
-
-        // Need at least 5 columns for Detail
-        if (columns.length < 5) {
-            return;
-        }
-
-        let targetRow;
-        if (index === 0) {
-            targetRow = detailTableBody.querySelector('tr');
-        } else {
-            addDetailRow();
-            targetRow = detailTableBody.querySelectorAll('tr')[index];
-        }
-
-        const inputs = targetRow.querySelectorAll('input.table-input');
-        if (inputs[0]) inputs[0].value = columns[0] || '';
-        if (inputs[1]) inputs[1].value = columns[1] || '';
-        if (inputs[2]) inputs[2].value = columns[2] || '';
-        if (inputs[3]) inputs[3].value = columns[3] || '';
-        if (inputs[4]) inputs[4].value = columns[4] || '';
-
-        successCount++;
-    });
-
-    updateRowNumbers(detailTableBody);
-    pasteArea.value = '';
-    showToast(`成功填充 ${successCount} 行数据`, 'success');
-}
-
-// ============================================
-// Event Listeners
-// ============================================
-
-// DN Section
-addDnRowBtn.addEventListener('click', addDnRow);
-generateAllDnBtn.addEventListener('click', generateAllDnQRCodes);
-downloadAllDnBtn.addEventListener('click', downloadAllDnQRCodes);
-
-// Detail Section
-addDetailRowBtn.addEventListener('click', addDetailRow);
-generateAllDetailBtn.addEventListener('click', generateAllDetailQRCodes);
-downloadAllDetailBtn.addEventListener('click', downloadAllDetailQRCodes);
-
-// Paste Parse Section
-const dnParsePasteBtn = document.getElementById('dnParsePaste');
-const detailParsePasteBtn = document.getElementById('detailParsePaste');
-dnParsePasteBtn.addEventListener('click', parseDnPasteData);
-detailParsePasteBtn.addEventListener('click', parseDetailPasteData);
-
-
-// Initialize existing rows
-document.querySelectorAll('#dnTableBody tr').forEach(attachDnRowEvents);
-document.querySelectorAll('#detailTableBody tr').forEach(attachDetailRowEvents);
-
-console.log('QR Code Generator (Batch Mode) initialized successfully');
-
-// ============================================
-// Excel Import/Export Functions
-// ============================================
-
-/**
- * Download DN template Excel file
- */
-function downloadDnTemplate() {
-    const wb = XLSX.utils.book_new();
-
-    // Create sample data with headers
-    const data = [
-        ['DN No. (送货单号)', 'Vendor ID (供应商编号)', 'PO No. (采购订单)'],
-        ['DN20250418001', '7016', '263275'],
-        ['DN20250418002', '7016', '263276'],
-        ['', '', '']
-    ];
-
-    const ws = XLSX.utils.aoa_to_sheet(data);
-
-    // Set column widths
-    ws['!cols'] = [
-        { wch: 25 },
-        { wch: 25 },
-        { wch: 20 }
-    ];
-
-    XLSX.utils.book_append_sheet(wb, ws, '送货单模板');
-    XLSX.writeFile(wb, '送货单导入模板.xlsx');
-    showToast('模板下载成功', 'success');
-}
-
-/**
- * Download Detail template Excel file
- */
-function downloadDetailTemplate() {
-    const wb = XLSX.utils.book_new();
-
-    // Create sample data with headers
-    const data = [
-        ['Full PO No. (完整采购单号)', 'Qty (数量)', 'Unit (单位)', 'Unique ID (流水号)', 'PN (零件编号)'],
-        ['263275-1-1', '3', 'PC', '250418003', 'MT4571-01-001'],
-        ['263275-1-2', '5', 'PC', '250418004', 'MT4571-01-002'],
-        ['', '', '', '', '']
-    ];
-
-    const ws = XLSX.utils.aoa_to_sheet(data);
-
-    // Set column widths
-    ws['!cols'] = [
-        { wch: 25 },
-        { wch: 15 },
-        { wch: 15 },
-        { wch: 20 },
-        { wch: 25 }
-    ];
-
-    XLSX.utils.book_append_sheet(wb, ws, '送货单明细模板');
-    XLSX.writeFile(wb, '送货单明细导入模板.xlsx');
-    showToast('模板下载成功', 'success');
-}
-
-/**
- * Import DN data from Excel file
- * @param {File} file - Excel file
- */
-function importDnData(file) {
-    const reader = new FileReader();
-
-    reader.onload = function (e) {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-
-            // Get first sheet
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-
-            // Remove header row and empty rows
-            const rows = jsonData.slice(1).filter(row => row.length > 0 && row.some(cell => cell));
-
-            if (rows.length === 0) {
-                showToast('Excel文件中没有数据', 'error');
-                return;
-            }
-
-            // Clear existing rows except the first one
-            const existingRows = dnTableBody.querySelectorAll('tr');
-            existingRows.forEach((row, index) => {
-                if (index > 0) row.remove();
-            });
-
-            // Fill data into rows
-            rows.forEach((row, index) => {
-                let targetRow;
-
-                if (index === 0) {
-                    // Use first existing row
-                    targetRow = dnTableBody.querySelector('tr');
-                } else {
-                    // Create new row
-                    addDnRow();
-                    targetRow = dnTableBody.querySelectorAll('tr')[index];
-                }
-
-                const inputs = targetRow.querySelectorAll('input.table-input');
-                if (inputs[0]) inputs[0].value = row[0] || '';
-                if (inputs[1]) inputs[1].value = row[1] || '';
-                if (inputs[2]) inputs[2].value = row[2] || '';
-            });
-
-            updateRowNumbers(dnTableBody);
-            showToast(`成功导入 ${rows.length} 行数据`, 'success');
-
-        } catch (error) {
-            console.error('Import error:', error);
-            showToast('导入失败，请检查文件格式', 'error');
-        }
-    };
-
-    reader.readAsArrayBuffer(file);
-}
-
-/**
- * Import Detail data from Excel file
- * @param {File} file - Excel file
- */
-function importDetailData(file) {
-    const reader = new FileReader();
-
-    reader.onload = function (e) {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-
-            // Get first sheet
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-
-            // Remove header row and empty rows
-            const rows = jsonData.slice(1).filter(row => row.length > 0 && row.some(cell => cell));
-
-            if (rows.length === 0) {
-                showToast('Excel文件中没有数据', 'error');
-                return;
-            }
-
-            // Clear existing rows except the first one
-            const existingRows = detailTableBody.querySelectorAll('tr');
-            existingRows.forEach((row, index) => {
-                if (index > 0) row.remove();
-            });
-
-            // Fill data into rows
-            rows.forEach((row, index) => {
-                let targetRow;
-
-                if (index === 0) {
-                    // Use first existing row
-                    targetRow = detailTableBody.querySelector('tr');
-                } else {
-                    // Create new row
-                    addDetailRow();
-                    targetRow = detailTableBody.querySelectorAll('tr')[index];
-                }
-
-                const inputs = targetRow.querySelectorAll('input.table-input');
-                if (inputs[0]) inputs[0].value = row[0] || '';
-                if (inputs[1]) inputs[1].value = row[1] || '';
-                if (inputs[2]) inputs[2].value = row[2] || '';
-                if (inputs[3]) inputs[3].value = row[3] || '';
-                if (inputs[4]) inputs[4].value = row[4] || '';
-            });
-
-            updateRowNumbers(detailTableBody);
-            showToast(`成功导入 ${rows.length} 行数据`, 'success');
-
-        } catch (error) {
-            console.error('Import error:', error);
-            showToast('导入失败，请检查文件格式', 'error');
-        }
-    };
-
-    reader.readAsArrayBuffer(file);
-}
-
-// Event Listeners for Import/Export
-document.getElementById('downloadDnTemplate').addEventListener('click', downloadDnTemplate);
-document.getElementById('downloadDetailTemplate').addEventListener('click', downloadDetailTemplate);
-
-document.getElementById('importDnFile').addEventListener('change', function (e) {
-    if (e.target.files.length > 0) {
-        importDnData(e.target.files[0]);
-        e.target.value = ''; // Reset file input
-    }
+    console.log('Unified QR Generator (Dual-Table) Ready.');
 });
-
-document.getElementById('importDetailFile').addEventListener('change', function (e) {
-    if (e.target.files.length > 0) {
-        importDetailData(e.target.files[0]);
-        e.target.value = ''; // Reset file input
-    }
-});
-
-// ================================================
-// 新功能集成代码 (Enhanced Features)
-// ================================================
-
-(function () {
-    // 1. 初始化模态框关闭逻辑
-    const closeModal = () => closeQrPreview();
-    const closeConfirmModal = (val) => closeConfirm(val);
-
-    const closeModalBtn = document.getElementById('closeModal');
-    if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
-
-    const confirmCancel = document.getElementById('confirmCancel');
-    if (confirmCancel) confirmCancel.addEventListener('click', () => closeConfirmModal(false));
-
-    const confirmOk = document.getElementById('confirmOk');
-    if (confirmOk) confirmOk.addEventListener('click', () => closeConfirmModal(true));
-
-    const qrModal = document.getElementById('qrPreviewModal');
-    if (qrModal) {
-        qrModal.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) closeModal();
-        });
-    }
-
-    const confirmModal = document.getElementById('confirmModal');
-    if (confirmModal) {
-        confirmModal.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) closeConfirmModal(false);
-        });
-    }
-
-    // 2. 初始化新按钮事件 (DN)
-    const dnBody = document.getElementById('dnTableBody');
-    const exportReportDn = document.getElementById('exportReportDn');
-    if (exportReportDn) exportReportDn.addEventListener('click', () => exportDataReport(dnBody, 'DN'));
-
-    const clearAllDn = document.getElementById('clearAllDn');
-    if (clearAllDn) clearAllDn.addEventListener('click', () => clearAllDnData(dnBody));
-
-    // 3. 初始化新按钮事件 (Detail)
-    const detailBody = document.getElementById('detailTableBody');
-    const exportReportDetail = document.getElementById('exportReportDetail');
-    if (exportReportDetail) exportReportDetail.addEventListener('click', () => exportDataReport(detailBody, 'Detail'));
-
-    const clearAllDetail = document.getElementById('clearAllDetail');
-    if (clearAllDetail) clearAllDetail.addEventListener('click', () => clearAllDetailData(detailBody));
-
-    // 4. 初始化模态框按钮
-    const modalCopy = document.getElementById('modalCopy');
-    if (modalCopy) {
-        modalCopy.addEventListener('click', async () => {
-            if (currentPreviewCanvas) {
-                try {
-                    const blob = await new Promise(resolve => currentPreviewCanvas.toBlob(resolve));
-                    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-                    showToast('已复制预览二维码', 'success');
-                } catch (e) {
-                    showToast('复制失败', 'error');
-                }
-            }
-        });
-    }
-
-    const modalDownload = document.getElementById('modalDownload');
-    if (modalDownload) {
-        modalDownload.addEventListener('click', () => {
-            if (currentPreviewCanvas) {
-                const link = document.createElement('a');
-                link.download = 'QR_Preview.png';
-                link.href = currentPreviewCanvas.toDataURL();
-                link.click();
-            }
-        });
-    }
-
-    // 5. 初始化自动保存
-    if (typeof initAutoSave === 'function') {
-        initAutoSave();
-    }
-})();
-
-// ================================================
-// 覆盖原有生成函数 (Overriding Generation Functions)
-// ================================================
-
-// Override generateAllDnQRCodes with enhancement
-function generateAllDnQRCodes() {
-    const rows = dnTableBody.querySelectorAll('tr');
-
-    // Duplicate Check
-    const duplicates = checkDnDuplicates(rows);
-    if (duplicates.length > 0) {
-        showConfirm(`⚠️ 警告：检测到重复数据\n${duplicates.join('\n')}\n\n建议检查后重试。仍要继续生成吗？`, () => {
-            _executeGenerateAllDn(rows);
-        });
-    } else {
-        _executeGenerateAllDn(rows);
-    }
-}
-
-function _executeGenerateAllDn(rows) {
-    let successCount = 0;
-    for (const row of rows) {
-        const inputs = row.querySelectorAll('input.table-input');
-        const dnNo = inputs[0] ? sanitizeInput(inputs[0].value) : '';
-        const vendorId = inputs[1] ? sanitizeInput(inputs[1].value) : '';
-        const poNo = inputs[2] ? sanitizeInput(inputs[2].value) : '';
-        if (!dnNo || !vendorId || !poNo) continue;
-        const content = `${dnNo};${vendorId};${poNo}`;
-        const canvas = row.querySelector('.qr-canvas');
-        const downloadBtn = row.querySelector('.download-row');
-        const copyBtn = row.querySelector('.copy-row');
-        if (!canvas) continue;
-        try {
-            canvas.width = 300; canvas.height = 300;
-            drawQRCode(content, canvas);
-            canvas.classList.add('visible');
-            canvas.dataset.content = content;
-            if (downloadBtn) downloadBtn.disabled = false;
-            if (copyBtn) copyBtn.disabled = false;
-
-            // Add click event for preview
-            if (!canvas.dataset.hasClick) {
-                canvas.style.cursor = 'pointer';
-                canvas.addEventListener('click', () => showQrPreview(canvas));
-                canvas.dataset.hasClick = 'true';
-            }
-
-            successCount++;
-        } catch (error) { console.error(error); }
-    }
-    if (successCount > 0) {
-        document.getElementById('downloadAllDn').disabled = false;
-        // Enable new buttons
-        const exportReportDn = document.getElementById('exportReportDn');
-        if (exportReportDn) exportReportDn.disabled = false;
-        showToast(`成功生成 ${successCount} 个二维码`, 'success');
-    } else {
-        showToast('请填写至少一行完整数据', 'error');
-    }
-}
-
-// Override generateAllDetailQRCodes with enhancement
-function generateAllDetailQRCodes() {
-    const rows = detailTableBody.querySelectorAll('tr');
-
-    // Validate Qty and Full PO No.
-    let hasError = false;
-    rows.forEach((row, index) => {
-        // Full PO No Validation
-        const fullPoInput = row.querySelectorAll('input.table-input')[0];
-        if (fullPoInput && fullPoInput.value.trim()) {
-            const poVal = fullPoInput.value.trim();
-            const hyphenCount = (poVal.match(/-/g) || []).length;
-
-            if (hyphenCount !== 2) {
-                fullPoInput.classList.add('error');
-                showToast(`第${index + 1}行：格式错误 (必须且只能包含两个 "-")`, 'error');
-                setTimeout(() => fullPoInput.classList.remove('error'), 3000);
-                hasError = true;
-            } else if (poVal.split('-')[1].trim() === '') {
-                fullPoInput.classList.add('error');
-                showToast(`第${index + 1}行：格式错误 (两个 "-" 之间必须包含内容)`, 'error');
-                setTimeout(() => fullPoInput.classList.remove('error'), 3000);
-                hasError = true;
-            }
-        }
-
-        // Qty Validation
-        const qtyInput = row.querySelectorAll('input.table-input')[1];
-        if (qtyInput && qtyInput.value.trim()) {
-            const val = validateQty(qtyInput.value);
-            if (!val.valid) {
-                qtyInput.classList.add('error');
-                showToast(`第${index + 1}行：${val.message}`, 'error');
-                setTimeout(() => qtyInput.classList.remove('error'), 3000);
-                hasError = true;
-            }
-        }
-    });
-    if (hasError) return;
-
-    // Duplicate Check
-    const duplicates = checkDetailDuplicates(rows);
-    if (duplicates.length > 0) {
-        showConfirm(`⚠️ 警告：检测到重复数据\n${duplicates.join('\n')}\n\n建议检查后重试。仍要继续生成吗？`, () => {
-            _executeGenerateAllDetail(rows);
-        });
-    } else {
-        _executeGenerateAllDetail(rows);
-    }
-}
-
-function _executeGenerateAllDetail(rows) {
-    let successCount = 0;
-    for (const row of rows) {
-        const inputs = row.querySelectorAll('input.table-input');
-        const fullPoNo = inputs[0] ? sanitizeInput(inputs[0].value) : '';
-        const qty = inputs[1] ? sanitizeInput(inputs[1].value) : '';
-        const unit = inputs[2] ? sanitizeInput(inputs[2].value) : '';
-        const uniqueId = inputs[3] ? sanitizeInput(inputs[3].value) : '';
-        const pn = inputs[4] ? sanitizeInput(inputs[4].value) : '';
-
-        if (!fullPoNo || !qty || !unit || !uniqueId || !pn) continue;
-        const content = `${fullPoNo};${qty};${unit};${uniqueId};${pn}`;
-        const canvas = row.querySelector('.qr-canvas');
-        const downloadBtn = row.querySelector('.download-row');
-        const copyBtn = row.querySelector('.copy-row');
-        if (!canvas) continue;
-        try {
-            canvas.width = 300; canvas.height = 300;
-            drawQRCode(content, canvas);
-            canvas.classList.add('visible');
-            canvas.dataset.content = content;
-            if (downloadBtn) downloadBtn.disabled = false;
-            if (copyBtn) copyBtn.disabled = false;
-
-            // Add click event for preview
-            if (!canvas.dataset.hasClick) {
-                canvas.style.cursor = 'pointer';
-                canvas.addEventListener('click', () => showQrPreview(canvas));
-                canvas.dataset.hasClick = 'true';
-            }
-            successCount++;
-        } catch (error) { console.error(error); }
-    }
-
-    if (successCount > 0) {
-        document.getElementById('downloadAllDetail').disabled = false;
-        // Enable new buttons
-        const exportReportDetail = document.getElementById('exportReportDetail');
-        if (exportReportDetail) exportReportDetail.disabled = false;
-
-        showToast(`成功生成 ${successCount} 个二维码`, 'success');
-    } else {
-        showToast('请填写至少一行完整数据', 'error');
-    }
-}

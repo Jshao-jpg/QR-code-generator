@@ -103,7 +103,7 @@
                                     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
                                         stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                         stroke-linejoin="round" />
-                                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+                                    <path d="M18.5 2.5a2.121 2 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
                                         stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                         stroke-linejoin="round" />
                                 </svg>
@@ -119,11 +119,11 @@
         </section>
 
         <main class="main-content">
-            <!-- 送货单 QR Code 区域 -->
-            <section class="qr-section dn-section">
+            <!-- 统一送货单 QR Code 区域 -->
+            <section class="qr-section">
                 <div class="section-header">
                     <div class="section-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                             <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"
                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                             <rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" stroke-width="2" />
@@ -131,12 +131,12 @@
                         </svg>
                     </div>
                     <div>
-                        <h2>送货单表头 QR Code</h2>
-                        <p>DN QR Code - 包含3种信息（批量输入）</p>
+                        <h2>送货单 QR Code</h2>
+                        <p>Delivery Note QR Code - 包含表头及明细信息</p>
                     </div>
 
                     <div class="header-actions">
-                        <button class="template-btn header-btn" id="downloadDnTemplate">
+                        <button class="template-btn header-btn" id="downloadUnifiedTemplate">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"
                                     stroke="currentColor" stroke-width="2" />
@@ -145,7 +145,7 @@
                             下载模板
                         </button>
                         <button class="template-btn header-btn"
-                            onclick="document.getElementById('importDnFile').click()">
+                            onclick="document.getElementById('importUnifiedFile').click()">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"
                                     stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -153,11 +153,11 @@
                             </svg>
                             导入数据
                         </button>
-                        <input type="file" id="importDnFile" accept=".xlsx,.xls,.csv" style="display: none;">
+                        <input type="file" id="importUnifiedFile" accept=".xlsx,.xls,.csv" style="display: none;">
                     </div>
                 </div>
 
-                <!-- 快速粘贴区域 -->
+                <!-- 1. 快速粘贴区域 (Top) -->
                 <div class="paste-area-container">
                     <div class="paste-area-header">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -165,11 +165,11 @@
                                 stroke="currentColor" stroke-width="2" />
                             <rect x="8" y="2" width="8" height="4" rx="1" stroke="currentColor" stroke-width="2" />
                         </svg>
-                        <span>快速粘贴（从Excel复制后粘贴到此处）</span>
+                        <span>快速粘贴（从Excel复制数据后粘贴并解析，自动识别表头或明细）</span>
                     </div>
-                    <textarea class="paste-area" id="dnPasteArea"
-                        placeholder="从Excel表格中复制数据，粘贴到这里...&#10;支持多行粘贴，数据之间用Tab或者空格分隔，不同行以回车符间隔" rows="3"></textarea>
-                    <button class="paste-parse-btn" id="dnParsePaste">
+                    <textarea class="paste-area" id="unifiedPasteArea"
+                        placeholder="从Excel表格中复制数据，粘贴到这里...&#10;支持多行粘贴，第一列匹配 DN No. 或 PO No." rows="3"></textarea>
+                    <button class="paste-parse-btn" id="unifiedParsePaste">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                             <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2"
                                 stroke-linecap="round" stroke-linejoin="round" />
@@ -178,254 +178,123 @@
                     </button>
                 </div>
 
-                <div class="table-container">
-                    <table class="data-table" id="dnTable">
-                        <thead>
-                            <tr>
-                                <th class="row-num">#</th>
-                                <th>DN No. <span class="th-cn">送货单号</span></th>
-                                <th>Vendor ID <span class="th-cn">供应商编号</span></th>
-                                <th>PO No. <span class="th-cn">采购订单</span></th>
-                                <th class="qr-col">QR Code</th>
-                                <th class="action-col">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dnTableBody">
-                            <tr>
-                                <td class="row-num">1</td>
-                                <td><input type="text" class="table-input dn-no" placeholder="如DN20250418001"></td>
-                                <td><input type="text" class="table-input vendor-id" placeholder="如7016"></td>
-                                <td><input type="text" class="table-input po-no" placeholder="如263275"></td>
-                                <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
-                                <td class="action-cell">
-                                    <button class="btn-icon copy-row" title="复制" disabled>
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                            <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor"
-                                                stroke-width="2" />
-                                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
-                                                stroke="currentColor" stroke-width="2" />
-                                        </svg>
-                                    </button>
-                                    <button class="btn-icon download-row" title="下载" disabled>
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
-                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                                stroke-linejoin="round" />
-                                        </svg>
-                                    </button>
-                                    <button class="btn-icon delete-row" title="删除行">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="table-actions">
-                    <div class="actions-left">
-                        <button class="add-row-btn" id="addDnRow">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                            </svg>
-                            添加行
-                        </button>
-                        <button class="generate-btn" id="generateAllDn">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
-                                <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
-                                <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
-                                <path d="M14 14h7v7h-7z" stroke="currentColor" stroke-width="2" />
-                            </svg>
-                            批量生成
-                        </button>
-                        <button class="download-all-btn" id="exportReportDn" disabled>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor"
-                                    stroke-width="2" />
-                                <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" />
-                                <path d="M8 13h8M8 17h8M8 9h2" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" />
-                            </svg>
-                            导出数据报表
-                        </button>
-                        <button class="add-row-btn danger-outline" id="clearAllDn">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"
-                                    stroke="currentColor" stroke-width="2" />
-                            </svg>
-                            清空数据
+                <!-- 2. 送货单表头模块 (Table) -->
+                <div class="unified-module-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div class="module-title" style="margin-bottom: 0; border-bottom: none;">送货单表头信息 (DN Header Info)</div>
+                        <button class="action-btn add-btn" id="addHeaderRow" style="padding: 4px 10px; font-size: 0.8rem; height: 30px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="margin-right: 4px;"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2"/></svg>
+                            添加表头行
                         </button>
                     </div>
-                    <div class="actions-right">
-                        <button class="download-all-btn" id="downloadAllDn" disabled>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                            下载全部二维码
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 送货单明细 QR Code 区域 -->
-            <section class="qr-section detail-section">
-                <div class="section-header">
-                    <div class="section-icon detail-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h2>送货单明细 QR Code</h2>
-                        <p>DN Detail QR Code - 包含5种信息（批量输入）</p>
-                    </div>
-
-                    <div class="header-actions">
-                        <button class="template-btn detail-template header-btn" id="downloadDetailTemplate">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"
-                                    stroke="currentColor" stroke-width="2" />
-                                <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                            </svg>
-                            下载模板
-                        </button>
-                        <button class="template-btn detail-template header-btn"
-                            onclick="document.getElementById('importDetailFile').click()">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" />
-                            </svg>
-                            导入数据
-                        </button>
-                        <input type="file" id="importDetailFile" accept=".xlsx,.xls,.csv" style="display: none;">
+                    <div class="table-container">
+                        <table class="data-table" id="headerTable">
+                            <thead>
+                                <tr>
+                                    <th class="row-num">#</th>
+                                    <th>DN No. <span class="th-cn">送货单号</span></th>
+                                    <th>Vendor ID <span class="th-cn">供应商编号</span></th>
+                                    <th class="qr-col">QR Code</th>
+                                    <th class="action-col">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="headerTableBody">
+                                <tr>
+                                    <td class="row-num">1</td>
+                                    <td><input type="text" class="table-input dn-no" placeholder="如DN20250418001"></td>
+                                    <td><input type="text" class="table-input vendor-id" placeholder="如7016"></td>
+                                    <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
+                                    <td class="action-cell">
+                                        <div class="row-actions">
+                                            <button class="action-btn download-row" title="下载" disabled>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2"/></svg>
+                                            </button>
+                                            <button class="action-btn copy-row" title="复制" disabled>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2"/></svg>
+                                            </button>
+                                            <button class="action-btn delete-row" title="删除">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke="currentColor" stroke-width="2"/></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <!-- 快速粘贴区域 -->
-                <div class="paste-area-container">
-                    <div class="paste-area-header">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                            <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"
-                                stroke="currentColor" stroke-width="2" />
-                            <rect x="8" y="2" width="8" height="4" rx="1" stroke="currentColor" stroke-width="2" />
-                        </svg>
-                        <span>快速粘贴（从Excel复制后粘贴到此处）</span>
+            <!-- 3. 送货单明细模块 (Table) -->
+            <div class="unified-module-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div class="module-title" style="margin-bottom: 0; border-bottom: none;">送货单明细信息 (DN Detail Info)</div>
+                </div>
+                    <div class="table-container">
+                        <table class="data-table" id="detailTable">
+                            <thead>
+                                <tr>
+                                    <th class="row-num">#</th>
+                                    <th>Full PO No. <span class="th-cn">完整采购单号</span></th>
+                                    <th>Qty <span class="th-cn">数量</span></th>
+                                    <th>Unit <span class="th-cn">单位</span></th>
+                                    <th>Unique ID <span class="th-cn">流水号</span></th>
+                                    <th>PN <span class="th-cn">零件编号</span></th>
+                                    <th class="qr-col">QR Code</th>
+                                    <th class="action-col">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailTableBody">
+                                <tr>
+                                    <td class="row-num">1</td>
+                                    <td><input type="text" class="table-input full-po-no" placeholder="如263275-1-1"></td>
+                                    <td><input type="text" class="table-input qty" placeholder="数量"></td>
+                                    <td><input type="text" class="table-input unit" placeholder="如PC"></td>
+                                    <td><input type="text" class="table-input unique-id" placeholder="自动生成" readonly></td>
+                                    <td><input type="text" class="table-input pn" placeholder="零件编号"></td>
+                                    <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
+                                    <td class="action-cell">
+                                        <div class="row-actions">
+                                            <button class="action-btn download-row" title="下载" disabled>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2"/></svg>
+                                            </button>
+                                            <button class="action-btn copy-row" title="复制" disabled>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2"/></svg>
+                                            </button>
+                                            <button class="action-btn delete-row" title="删除">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke="currentColor" stroke-width="2"/></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <textarea class="paste-area" id="detailPasteArea"
-                        placeholder="从Excel表格中复制数据，粘贴到这里...&#10;支持多行粘贴，数据之间用Tab或者空格分隔，不同行以回车符间隔" rows="3"></textarea>
-                    <button class="paste-parse-btn detail-paste-btn" id="detailParsePaste">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        解析并填充
+                </div>
+
+                <!-- 4. 底部统一操作 (Consolidated Action Bar) -->
+                <div class="table-actions-bottom">
+                    <button class="action-btn add-btn" id="addDetailRow">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2"/></svg>
+                        添加行
                     </button>
-                </div>
-
-                <div class="table-container">
-                    <table class="data-table detail-table" id="detailTable">
-                        <thead>
-                            <tr>
-                                <th class="row-num">#</th>
-                                <th>Full PO No. <span class="th-cn">完整采购单号</span></th>
-                                <th>Qty <span class="th-cn">数量</span></th>
-                                <th>Unit <span class="th-cn">单位</span></th>
-                                <th>Unique ID <span class="th-cn">流水号</span></th>
-                                <th>PN <span class="th-cn">零件编号</span></th>
-                                <th class="qr-col">QR Code</th>
-                                <th class="action-col">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="detailTableBody">
-                            <tr>
-                                <td class="row-num">1</td>
-                                <td><input type="text" class="table-input full-po-no" placeholder="如263275-1-1"></td>
-                                <td><input type="text" class="table-input qty" placeholder="如3"></td>
-                                <td><input type="text" class="table-input unit" placeholder="如PC"></td>
-                                <td><input type="text" class="table-input unique-id" placeholder="如250418003"></td>
-                                <td><input type="text" class="table-input pn" placeholder="如MT4571-01-001"></td>
-                                <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
-                                <td class="action-cell">
-                                    <button class="btn-icon copy-row" title="复制" disabled>
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                            <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor"
-                                                stroke-width="2" />
-                                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
-                                                stroke="currentColor" stroke-width="2" />
-                                        </svg>
-                                    </button>
-                                    <button class="btn-icon download-row" title="下载" disabled>
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
-                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                                stroke-linejoin="round" />
-                                        </svg>
-                                    </button>
-                                    <button class="btn-icon delete-row" title="删除行">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="table-actions">
-                    <div class="actions-left">
-                        <button class="add-row-btn detail-add" id="addDetailRow">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                            </svg>
-                            添加行
-                        </button>
-                        <button class="generate-btn detail-btn" id="generateAllDetail">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
-                                <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
-                                <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
-                                <path d="M14 14h7v7h-7z" stroke="currentColor" stroke-width="2" />
-                            </svg>
-                            批量生成
-                        </button>
-                        <button class="download-all-btn detail-download-all" id="exportReportDetail" disabled>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor"
-                                    stroke-width="2" />
-                                <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" />
-                                <path d="M8 13h8M8 17h8M8 9h2" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" />
-                            </svg>
-                            导出数据报表
-                        </button>
-                        <button class="add-row-btn danger-outline" id="clearAllDetail">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"
-                                    stroke="currentColor" stroke-width="2" />
-                            </svg>
-                            清空数据
-                        </button>
-                    </div>
-                    <div class="actions-right">
-                        <button class="download-all-btn detail-download-all" id="downloadAllDetail" disabled>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                            下载全部二维码
-                        </button>
-                    </div>
+                    <button class="action-btn generate-btn" id="generateAllUnified">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-right: 6px; vertical-align: middle;"><rect x="3" y="3" width="7" height="7" rx="1" fill="currentColor"/><rect x="14" y="3" width="7" height="7" rx="1" fill="currentColor"/><rect x="3" y="14" width="7" height="7" rx="1" fill="currentColor"/><rect x="14" y="14" width="7" height="7" rx="1" fill="currentColor"/></svg>
+                        批量生成
+                    </button>
+                    <button class="action-btn export-report-btn" id="exportUnifiedReport" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="margin-right: 6px; vertical-align: middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="2"/></svg>
+                        导出数据报表
+                    </button>
+                    <button class="action-btn clear-btn" id="clearAllUnified">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="margin-right: 6px; vertical-align: middle;"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2"/></svg>
+                        清空数据
+                    </button>
+                    
+                    <div style="flex: 1"></div>
+                    
+                    <button class="action-btn download-all-btn" id="downloadAllUnified" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="margin-right: 6px; vertical-align: middle;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2"/></svg>
+                        下载全部二维码
+                    </button>
                 </div>
             </section>
 
@@ -491,8 +360,8 @@
         </footer>
     </div>
 
-    <script src="enhancements.js"></script>
     <script src="script.js"></script>
+    <script src="enhancements.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

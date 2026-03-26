@@ -1,527 +1,367 @@
 // ================================================
-//  QR码生成器 - 7个新增功能模块
-//  集成到主版本
+//  QR码生成器 - 增强功能模块 (双表格统一工作流版)
 // ================================================
 
 // ========================
 // 功能1: 数字验证
 // ========================
-
-/**
- * 验证Qty字段是否为有效数字
- */
 function validateQty(value) {
-    const trimmed = value.trim();
-    if (!trimmed) {
-        return { valid: false, message: '数量不能为空' };
-    }
-
-    const num = Number(trimmed);
-    if (isNaN(num)) {
-        return { valid: false, message: '数量必须是数字' };
-    }
-    if (num <= 0) {
-        return { valid: false, message: '数量必须大于0' };
-    }
-
+    const num = Number(value.trim());
+    if (isNaN(num) || num <= 0) return { valid: false, message: '数量必须是大于0的数字' };
     return { valid: true, value: num };
 }
 
 // ========================
-// 功能2: 重复数据检测
+// 功能2: 确认对话框 & 预览
 // ========================
-
-/**
- * 检测DN表格中的重复数据
- */
-/**
- * 检测DN表格中的重复数据 - 详细版
- */
-function checkDnDuplicates(rows) {
-    const seenData = new Map(); // key -> first seen rowIndex
-    const duplicates = [];
-
-    rows.forEach((row, index) => {
-        const inputs = row.querySelectorAll('input.table-input');
-        if (inputs.length >= 3) {
-            const values = [
-                inputs[0]?.value.trim(),
-                inputs[1]?.value.trim(),
-                inputs[2]?.value.trim()
-            ];
-
-            if (values.every(v => v)) {
-                const dataKey = values.join('|');
-                if (seenData.has(dataKey)) {
-                    duplicates.push(`第 ${index + 1} 行 (与第 ${seenData.get(dataKey)} 行重复)`);
-                } else {
-                    seenData.set(dataKey, index + 1);
-                }
-            }
-        }
-    });
-
-    return duplicates;
-}
-
-/**
- * 检测Detail表格中的重复数据
- */
-/**
- * 检测Detail表格中的重复数据 - 详细版
- */
-function checkDetailDuplicates(rows) {
-    const seenData = new Map();
-    const duplicates = [];
-
-    rows.forEach((row, index) => {
-        const inputs = row.querySelectorAll('input.table-input');
-        if (inputs.length >= 5) {
-            const values = Array.from(inputs).slice(0, 5).map(input => input.value.trim());
-
-            if (values.every(v => v)) {
-                const dataKey = values.join('|');
-                if (seenData.has(dataKey)) {
-                    duplicates.push(`第 ${index + 1} 行 (与第 ${seenData.get(dataKey)} 行重复)`);
-                } else {
-                    seenData.set(dataKey, index + 1);
-                }
-            }
-        }
-    });
-
-    return duplicates;
-}
-
-// ========================
-// 功能3: 确认对话框
-// ========================
-
 let confirmCallback = null;
-
-/**
- * 显示确认对话框
- */
 function showConfirm(message, callback) {
     const modal = document.getElementById('confirmModal');
     const messageEl = document.getElementById('confirmMessage');
-
     if (modal && messageEl) {
         messageEl.textContent = message;
         confirmCallback = callback;
         modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
     }
 }
-
-/**
- * 关闭确认对话框
- */
 function closeConfirm(confirmed) {
     const modal = document.getElementById('confirmModal');
     modal.classList.remove('show');
-    document.body.style.overflow = '';
-
-    if (confirmed && typeof confirmCallback === 'function') {
-        confirmCallback();
-    }
+    if (confirmed && typeof confirmCallback === 'function') confirmCallback();
     confirmCallback = null;
 }
 
-// ========================
-// 功能4: 点击预览大图
-// ========================
-
 let currentPreviewCanvas = null;
-
-/**
- * 显示QR码预览
- */
 function showQrPreview(canvas) {
     const modal = document.getElementById('qrPreviewModal');
     const previewCanvas = document.getElementById('previewCanvas');
     const previewContent = document.getElementById('previewContent');
-
     if (!modal || !previewCanvas || !previewContent) return;
-
-    previewCanvas.width = 400;
-    previewCanvas.height = 400;
-
+    previewCanvas.width = 400; previewCanvas.height = 400;
     const ctx = previewCanvas.getContext('2d');
-    ctx.clearRect(0, 0, 400, 400);
     ctx.drawImage(canvas, 0, 0, 400, 400);
-
-    const content = canvas.dataset.content || '';
-    previewContent.textContent = content.replace(/;/g, ' ; ');
-
+    previewContent.textContent = (canvas.dataset.content || '').replace(/;/g, ' ; ');
     currentPreviewCanvas = canvas;
     modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
 }
-
-/**
- * 关闭预览模态框
- */
 function closeQrPreview() {
-    const modal = document.getElementById('qrPreviewModal');
-    modal.classList.remove('show');
-    document.body.style.overflow = '';
+    document.getElementById('qrPreviewModal').classList.remove('show');
 }
 
 // ========================
-// 功能6: 数据报表导出 (.xlsx 格式)
+// 功能3: 报表导出 (.xlsx 格式)
 // ========================
-
-/**
- * 使用 ExcelJS 导出真正的 .xlsx 格式报表（支持嵌入图片且无警告）
- */
-async function exportDataReport(tableBody, type) {
-    const rows = tableBody.querySelectorAll('tr');
-    const canvases = tableBody.querySelectorAll('.qr-canvas.visible');
-
-    if (canvases.length === 0) {
+// ========================
+// 功能3: 报表导出 (.xlsx 格式)
+// ========================
+async function exportUnifiedReport() {
+    const hRows = Array.from(headerTableBody.querySelectorAll('tr'));
+    const dRows = Array.from(detailTableBody.querySelectorAll('tr'));
+    
+    const hasAnyQr = !!document.querySelector('.qr-canvas.visible');
+    if (!hasAnyQr) {
         showToast('请先生成二维码再导出报表', 'error');
         return;
     }
 
-    showToast('正在生成报表...', 'info');
+    showToast('正在生成送货单报表...', 'info');
 
     try {
         const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet(type === 'DN' ? 'DN Header' : 'DN Detail');
-
-        const title = type === 'DN' ? 
-            '送货单表头数据报表 (DN Header Data Report)' : 
-            '送货单明细数据报表 (DN Detail Data Report)';
-
-        // 基础配置
-        const colCount = type === 'DN' ? 5 : 7;
+        const worksheet = workbook.addWorksheet('送货单');
         
-        // 1. 添加标题行
-        const titleRow = worksheet.addRow([title]);
-        worksheet.mergeCells(1, 1, 1, colCount);
-        titleRow.height = 35;
-        titleRow.font = { size: 16, bold: true };
-        titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
-        titleRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
+        // 1. Setup Columns (Matching template appearance)
+        worksheet.columns = [
+            { header: '', key: 'col1', width: 12 }, // A: 序号
+            { header: '', key: 'col2', width: 25 }, // B: 采购单号
+            { header: '', key: 'col3', width: 25 }, // C: 客户料号
+            { header: '', key: 'col4', width: 12 }, // D: 数量
+            { header: '', key: 'col5', width: 10 }, // E: 单位
+            { header: '', key: 'col6', width: 22 }, // F: 二维码
+            { header: '', key: 'col7', width: 15 }, // G: 备注
+            { header: '', key: 'col8', width: 15 }  // H: (Info Column)
+        ];
 
-        // 2. 添加元信息行
-        const metaInfo = `生成时间: ${new Date().toLocaleString()} | 送货单 QR Code 生成器 (QR Code General)`;
-        const metaRow = worksheet.addRow([metaInfo]);
-        worksheet.mergeCells(2, 1, 2, colCount);
-        metaRow.height = 20;
-        metaRow.font = { size: 10, color: { argb: 'FF666666' } };
-        metaRow.alignment = { vertical: 'middle', horizontal: 'center' };
+        // 2. Metadata & Titles (Rows 3-7)
+        worksheet.mergeCells('B3:F3');
+        const titleCell = worksheet.getCell('B3');
+        titleCell.value = 'xxxxxxxxxxxx有限公司';
+        titleCell.font = { size: 16, bold: true, name: 'Microsoft YaHei' };
+        titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-        worksheet.addRow([]); // 空行
+        worksheet.mergeCells('B4:F4');
+        const subtitleCell = worksheet.getCell('B4');
+        subtitleCell.value = '送货单';
+        subtitleCell.font = { size: 14, bold: true, name: 'Microsoft YaHei' };
+        subtitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-        // 3. 设置表头
-        let headers = [];
-        let colWidths = [];
+        // Static labels and Dynamic values
+        const firstHeader = hRows[0];
+        const dnNo = firstHeader.querySelector('.dn-no').value.trim();
+        const today = new Date().toISOString().split('T')[0];
 
-        if (type === 'DN') {
-            headers = ['#', 'DN No.', 'Vendor ID', 'PO No.', 'QR Code'];
-            colWidths = [8, 25, 20, 25, 20];
-        } else {
-            headers = ['#', 'Full PO No.', 'Qty', 'Unit', 'Unique ID', 'PN', 'QR Code'];
-            colWidths = [8, 25, 12, 12, 20, 25, 20];
+        // Row 5
+        worksheet.getCell('A5').value = '客户名称：';
+        worksheet.getCell('B5').value = '东莞威雅利实业有限公司';
+        worksheet.getCell('B5').alignment = { horizontal: 'left' };
+        worksheet.getCell('F5').value = '送货单号：';
+        worksheet.getCell('G5').value = dnNo;
+        worksheet.getCell('G5').alignment = { horizontal: 'left' };
+
+        // Row 6
+        worksheet.getCell('A6').value = '客户地址：';
+        worksheet.getCell('B6').value = '广东省东莞市长安镇乌沙社区振安中路3号';
+        worksheet.getCell('B6').alignment = { horizontal: 'left' };
+        worksheet.getCell('F6').value = '开单日期：';
+        worksheet.getCell('G6').value = today;
+        worksheet.getCell('G6').alignment = { horizontal: 'left' };
+
+        // Row 7
+        worksheet.getCell('A7').value = '联系人：';
+        worksheet.getCell('B7').value = '罗宏武';
+        worksheet.getCell('B7').alignment = { horizontal: 'left' };
+        worksheet.getCell('F7').value = '电话：';
+        worksheet.getCell('G7').value = '18688620375';
+        worksheet.getCell('G7').alignment = { horizontal: 'left' };
+
+        // Align metadata labels
+        ['A5', 'A6', 'A7', 'F5', 'F6', 'F7'].forEach(addr => {
+            worksheet.getCell(addr).alignment = { horizontal: 'left' };
+            worksheet.getCell(addr).font = { bold: true };
+        });
+
+        // 3. Header QR (Centered roughly in G area using EMUs)
+        const headerCanvas = firstHeader.querySelector('.qr-canvas');
+        if (headerCanvas && headerCanvas.classList.contains('visible')) {
+            const base64 = headerCanvas.toDataURL('image/png').split(',')[1];
+            const imageId = workbook.addImage({ base64, extension: 'png' });
+            // nativeColOff/nativeRowOff are the ONLY foolproof ways to offset in ExcelJS without width dependency.
+            worksheet.addImage(imageId, {
+                tl: { 
+                    nativeCol: 6, nativeColOff: 15 * 9525, 
+                    nativeRow: 0, nativeRowOff: 15 * 9525 
+                }, 
+                ext: { width: 70, height: 70 },
+                editAs: 'oneCell'
+            });
         }
 
-        const headerRow = worksheet.addRow(headers);
+        // 4. Detail Table Headers (Row 9)
+        const headerRow = worksheet.getRow(9);
+        headerRow.values = ['序号', '采购单号', '客户料号', '数量', '单位', '二维码', '备注'];
         headerRow.height = 25;
-        headerRow.eachCell((cell) => {
-            cell.font = { bold: true };
-            cell.alignment = { vertical: 'middle', horizontal: 'center' };
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE9ECEF' } };
-            cell.border = {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-            };
-        });
-
-        // 设置列宽
-        colWidths.forEach((width, i) => {
-            worksheet.getColumn(i + 1).width = width;
-        });
-
-        // 4. 填充数据
-        let rowIndex = 5;
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            const canvas = row.querySelector('.qr-canvas');
-            if (!canvas || !canvas.classList.contains('visible')) continue;
-
-            const inputs = Array.from(row.querySelectorAll('input.table-input'));
-            const rowData = [i + 1, ...inputs.map(input => input.value || ''), '']; 
-            
-            const dataRow = worksheet.addRow(rowData);
-            dataRow.height = 95; // 增加行高以适应 100x100 的二维码
-            dataRow.eachCell((cell) => {
-                cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        headerRow.eachCell((cell, colNum) => {
+            if (colNum <= 7) {
+                cell.font = { bold: true, name: 'Microsoft YaHei' };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE9ECEF' } };
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
                 cell.border = {
                     top: { style: 'thin' },
                     left: { style: 'thin' },
                     bottom: { style: 'thin' },
                     right: { style: 'thin' }
                 };
+            }
+        });
+
+        // 5. Fill Detail Rows (Starting Row 10)
+        let currentRow = 10;
+        dRows.forEach((row, i) => {
+            const po = row.querySelector('.full-po-no').value.trim();
+            const qty = row.querySelector('.qty').value.trim();
+            const unit = row.querySelector('.unit').value.trim();
+            const pn = row.querySelector('.pn').value.trim();
+            const canvas = row.querySelector('.qr-canvas');
+
+            if (!po && !qty) return;
+
+            const dataRow = worksheet.getRow(currentRow);
+            dataRow.values = [i + 1, po, pn, qty, unit, '', ''];
+            dataRow.height = 99; // 稍微减小行高，微调二维码下边距
+            dataRow.eachCell((cell, colNum) => {
+                if (colNum <= 7) {
+                    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+                    cell.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' }
+                    };
+                }
             });
 
-            // 嵌入图片
-            try {
+            // Embed Detail QR (Centered strictly in F using native EMUs without stretching)
+            if (canvas && canvas.classList.contains('visible')) {
                 const base64 = canvas.toDataURL('image/png').split(',')[1];
-                const imageId = workbook.addImage({
-                    base64: base64,
-                    extension: 'png',
-                });
-
-                // 设置为正方形：计算居中偏移量或使用固定宽高
-                worksheet.addImage(imageId, {
-                    tl: { col: colCount - 1, row: rowIndex - 1, colOff: 15, rowOff: 5 },
-                    ext: { width: 120, height: 120 }, // 设置完全的正方形尺寸
+                const imgId = workbook.addImage({ base64, extension: 'png' });
+                worksheet.addImage(imgId, {
+                    tl: { 
+                        nativeCol: 5, nativeColOff: 48 * 9525, // 48px right
+                        nativeRow: currentRow - 1, nativeRowOff: 8 * 9525 // 8px down
+                    },
+                    ext: { width: 70, height: 70 },
                     editAs: 'oneCell'
                 });
-            } catch (err) {
-                console.error('Image embedding error:', err);
             }
+            currentRow++;
+        });
 
-            rowIndex++;
-        }
-
-        // 5. 导出文件
-        const buffer = await workbook.xlsx.writeBuffer();
-        const filename = `${type}_Report_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`;
-        saveAs(new Blob([buffer]), filename);
+        // 6. Footer (Add 5 rows after the last detail row)
+        const footerStartRow = currentRow + 4;
         
-        showToast('✅ 报表导出完成 (XLSX)', 'success');
+        worksheet.getCell(`A${footerStartRow}`).value = '送货人（盖章）：';
+        worksheet.getCell(`F${footerStartRow}`).value = '收货单位（盖章）：';
+        worksheet.getCell(`A${footerStartRow + 1}`).value = '日期：';
+        worksheet.getCell(`F${footerStartRow + 1}`).value = '日期：';
+
+        [footerStartRow, footerStartRow + 1].forEach(rIdx => {
+            worksheet.getRow(rIdx).eachCell(cell => {
+                cell.font = { bold: true };
+            });
+        });
+
+        // 7. Write and Save
+        const buffer = await workbook.xlsx.writeBuffer();
+        saveAs(new Blob([buffer]), `送货单报表_${dnNo || today}.xlsx`);
+        showToast('✅ 报表导出完成', 'success');
     } catch (error) {
-        console.error('Report export error:', error);
-        showToast('报表导出失败', 'error');
+        console.error(error);
+        showToast('导出失败: ' + error.message, 'error');
     }
 }
 
 // ========================
-// 清空数据功能（配合确认对话框）
+// 功能4: 模板下载 & 导入
 // ========================
 
-// ========================
-// 功能8: 自动保存 (Auto-Save)
-// ========================
-
-const STORAGE_KEYS = {
-    DN: 'qr_dn_data_backup',
-    DETAIL: 'qr_detail_data_backup'
-};
-
-/**
- * 自动保存核心逻辑
- */
-function saveTableData(type) {
-    let data = [];
-    let tableBody;
-
-    if (type === 'DN') {
-        tableBody = document.getElementById('dnTableBody');
-    } else if (type === 'DETAIL') {
-        tableBody = document.getElementById('detailTableBody');
-    }
-
-    if (!tableBody) return;
-
-    const rows = tableBody.querySelectorAll('tr');
-    rows.forEach(row => {
-        const inputs = Array.from(row.querySelectorAll('input.table-input'));
-        const rowData = inputs.map(input => input.value);
-        // 只保存非空行 (at least one field has value)
-        if (rowData.some(val => val.trim() !== '')) {
-            data.push(rowData);
-        }
-    });
-
-    localStorage.setItem(STORAGE_KEYS[type], JSON.stringify(data));
-    // console.log(`Auto-saved ${data.length} rows for ${type}`);
+function downloadUnifiedTemplate() {
+    const wb = XLSX.utils.book_new();
+    const data = [
+        ['DN No. (送货单号)', 'Vendor ID (供应商编号)', '', ''],
+        ['DN20250418001', '7016', '', ''],
+        ['', '', '', ''], // Blank row
+        ['Full PO No. (完整采购单号)', 'Qty (数量)', 'Unit (单位)', 'PN (零件编号)'], // Removed Remarks
+        ['263275-1-1', '3', 'PC', 'MT4571-01-001'],
+        ['263275-1-2', '5', 'PC', 'MT4571-01-002']
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 10 }, { wch: 25 }];
+    XLSX.utils.book_append_sheet(wb, ws, '导入模板');
+    XLSX.writeFile(wb, '送货单导入模板.xlsx');
+    showToast('模板下载成功');
 }
 
-/**
- * 从本地存储恢复数据
- */
-function loadTableData() {
-    // 1. Load DN Data
-    const dnData = JSON.parse(localStorage.getItem(STORAGE_KEYS.DN) || '[]');
-    if (dnData.length > 0) {
-        const dnBody = document.getElementById('dnTableBody');
-        // Ensure enough rows
-        while (dnBody.children.length < dnData.length) {
-            document.getElementById('addDnRow').click();
-        }
+function importUnifiedData(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const ws = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(ws, { header: 1 });
+            
+            let headerData = [];
+            let detailData = [];
+            let inDetail = false;
 
-        dnData.forEach((rowData, index) => {
-            if (index < dnBody.children.length) {
-                const inputs = dnBody.children[index].querySelectorAll('input.table-input');
-                rowData.forEach((val, i) => {
-                    if (inputs[i]) inputs[i].value = val;
+            jsonData.forEach(row => {
+                if (row.length === 0 || !row.some(c => c)) return;
+                const firstCell = String(row[0]).toLowerCase();
+                if (firstCell.includes('dn no') || firstCell.includes('送货单号')) { inDetail = false; return; }
+                if (firstCell.includes('full po no') || firstCell.includes('完整采购单号')) { inDetail = true; return; }
+
+                if (inDetail) detailData.push(row); else headerData.push(row);
+            });
+
+            if (headerData.length > 0) {
+                headerTableBody.innerHTML = '';
+                headerData.forEach(d => {
+                    const r = addHeaderRow();
+                    r.querySelector('.dn-no').value = d[0] || '';
+                    r.querySelector('.vendor-id').value = d[1] || '';
                 });
             }
-        });
-        showToast(`已恢复 ${dnData.length} 条送货单数据`, 'success');
-    }
-
-    // 2. Load Detail Data
-    const detailData = JSON.parse(localStorage.getItem(STORAGE_KEYS.DETAIL) || '[]');
-    if (detailData.length > 0) {
-        const detailBody = document.getElementById('detailTableBody');
-        // Ensure enough rows
-        while (detailBody.children.length < detailData.length) {
-            document.getElementById('addDetailRow').click();
-        }
-
-        detailData.forEach((rowData, index) => {
-            if (index < detailBody.children.length) {
-                const inputs = detailBody.children[index].querySelectorAll('input.table-input');
-                rowData.forEach((val, i) => {
-                    if (inputs[i]) inputs[i].value = val;
+            if (detailData.length > 0) {
+                detailTableBody.innerHTML = '';
+                detailData.forEach(d => {
+                    const r = addDetailRow();
+                    r.querySelector('.full-po-no').value = d[0] || '';
+                    r.querySelector('.qty').value = d[1] || '';
+                    r.querySelector('.unit').value = d[2] || '';
+                    r.querySelector('.pn').value = d[3] || '';
                 });
+                refreshDetailIds();
             }
-        });
-        showToast(`已恢复 ${detailData.length} 条明细数据`, 'success');
-    }
+            showToast(`成功导入：表头 ${headerData.length} 行，明细 ${detailData.length} 行`);
+        } catch (err) { showToast('导入失败', 'error'); }
+    };
+    reader.readAsArrayBuffer(file);
 }
-
-/**
- * 初始化自动保存监听器
- */
-function initAutoSave() {
-    const dnBody = document.getElementById('dnTableBody');
-    const detailBody = document.getElementById('detailTableBody');
-
-    // Use Event Delegation for better performance and dynamic elements support
-    if (dnBody) {
-        dnBody.addEventListener('input', (e) => {
-            if (e.target.classList.contains('table-input')) {
-                // Debounce simple implementation
-                clearTimeout(dnBody.timer);
-                dnBody.timer = setTimeout(() => saveTableData('DN'), 500);
-            }
-        });
-    }
-
-    if (detailBody) {
-        detailBody.addEventListener('input', (e) => {
-            if (e.target.classList.contains('table-input')) {
-                clearTimeout(detailBody.timer);
-                detailBody.timer = setTimeout(() => saveTableData('DETAIL'), 500);
-            }
-        });
-    }
-
-    // Load data on init - 已禁用：用户要求刷新不保留
-    // loadTableData();
-}
-
-// 扩展清空函数以清除本地存储
-// Note: Direct definition since original function declaration was removed
-function clearAllDnData(dnTableBody) {
-    showConfirm('确定要清空所有送货单表头数据吗？', () => {
-        localStorage.removeItem(STORAGE_KEYS.DN);
-
-        const rows = dnTableBody.querySelectorAll('tr');
-        rows.forEach((row, index) => {
-            row.querySelectorAll('input.table-input').forEach(i => i.value = '');
-            row.querySelector('.qr-canvas')?.classList.remove('visible');
-            // clear canvas
-            const canvas = row.querySelector('.qr-canvas');
-            if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-
-            if (index > 0) row.remove();
-        });
-
-        updateRowNumbers(dnTableBody);
-
-        // Disable buttons
-        ['downloadAllDn', 'exportReportDn'].forEach(id => {
-            const btn = document.getElementById(id);
-            if (btn) btn.disabled = true;
-        });
-
-        showToast('✅ 数据已清空 (包括本地备份)', 'success');
-    });
-}
-
-function clearAllDetailData(detailTableBody) {
-    showConfirm('确定要清空所有明细数据吗？', () => {
-        localStorage.removeItem(STORAGE_KEYS.DETAIL);
-
-        const rows = detailTableBody.querySelectorAll('tr');
-        rows.forEach((row, index) => {
-            row.querySelectorAll('input.table-input').forEach(i => i.value = '');
-            row.querySelector('.qr-canvas')?.classList.remove('visible');
-            // clear canvas
-            const canvas = row.querySelector('.qr-canvas');
-            if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-
-            if (index > 0) row.remove();
-        });
-
-        updateRowNumbers(detailTableBody);
-
-        // Disable buttons
-        ['downloadAllDetail', 'exportReportDetail'].forEach(id => {
-            const btn = document.getElementById(id);
-            if (btn) btn.disabled = true;
-        });
-
-        showToast('✅ 数据已清空 (包括本地备份)', 'success');
-    });
-}
-
 
 // ========================
-// 功能9: PWA 安装支持
+// 功能5: 自动保存
 // ========================
+function saveToLocal() {
+    const data = {
+        headers: Array.from(headerTableBody.querySelectorAll('tr')).map(r => [
+            r.querySelector('.dn-no').value, r.querySelector('.vendor-id').value
+        ]),
+        details: Array.from(detailTableBody.querySelectorAll('tr')).map(r => [
+            r.querySelector('.full-po-no').value, r.querySelector('.qty').value,
+            r.querySelector('.unit').value, r.querySelector('.pn').value
+        ])
+    };
+    localStorage.setItem('qr_unified_dual_backup', JSON.stringify(data));
+}
 
-let deferredInstallPrompt = null;
-const installBtn = document.getElementById('installAppBtn');
+function loadFromLocal() {
+    const saved = localStorage.getItem('qr_unified_dual_backup');
+    if (!saved) return;
+    try {
+        const data = JSON.parse(saved);
+        if (data.headers.length > 0) {
+            headerTableBody.innerHTML = '';
+            data.headers.forEach(h => {
+                const r = addHeaderRow();
+                r.querySelector('.dn-no').value = h[0] || '';
+                r.querySelector('.vendor-id').value = h[1] || '';
+            });
+        }
+        if (data.details.length > 0) {
+            detailTableBody.innerHTML = '';
+            data.details.forEach(d => {
+                const r = addDetailRow();
+                r.querySelector('.full-po-no').value = d[0] || '';
+                r.querySelector('.qty').value = d[1] || '';
+                r.querySelector('.unit').value = d[2] || '';
+                r.querySelector('.pn').value = d[3] || '';
+            });
+            refreshDetailIds();
+        }
+    } catch (e) {}
+}
 
-// 1. 监听安装事件（浏览器认为可以安装时触发）
-window.addEventListener('beforeinstallprompt', (e) => {
-    // 防止 Chrome 67 及更早版本自动显示提示
-    e.preventDefault();
-    // 保存事件以便稍后触发
-    deferredInstallPrompt = e;
-    // 更新 UI 通知用户可以添加到主屏幕
-    if (installBtn) {
-        installBtn.style.display = 'flex';
-        console.log('📱 PWA Install capability detected - Install button shown');
-    }
-});
-
-// 2. 处理点击安装
-if (installBtn) {
-    installBtn.addEventListener('click', async () => {
-        if (!deferredInstallPrompt) return;
-
-        // 显示安装提示
-        deferredInstallPrompt.prompt();
-
-        // 等待用户响应
-        const { outcome } = await deferredInstallPrompt.userChoice;
-        console.log(`User response to install prompt: ${outcome}`);
-
-        // 只能使用一次
-        deferredInstallPrompt = null;
-
-        // 如果已安装，隐藏按钮
-        if (outcome === 'accepted') {
-            installBtn.style.display = 'none';
+// ========================
+// 初始化
+// ========================
+(function() {
+    document.getElementById('exportUnifiedReport')?.addEventListener('click', exportUnifiedReport);
+    document.getElementById('downloadUnifiedTemplate')?.addEventListener('click', downloadUnifiedTemplate);
+    document.getElementById('importUnifiedFile')?.addEventListener('change', (e) => {
+        if (e.target.files[0]) {
+            importUnifiedData(e.target.files[0]);
+            e.target.value = '';
         }
     });
-}
 
-// 3. 监听安装完成事件
-window.addEventListener('appinstalled', () => {
-    console.log('✅ PWA App installed successfully');
-    if (installBtn) installBtn.style.display = 'none';
-});
+    // Auto save on any input
+    document.querySelector('.qr-section')?.addEventListener('input', () => {
+        clearTimeout(window.saveTimer);
+        window.saveTimer = setTimeout(saveToLocal, 1000);
+    });
 
-console.log('✅ QR码生成器增强功能模块已加载 (含Auto-Save & PWA)');
+    // Load initial data
+    loadFromLocal();
+})();
+
+console.log('✅ QR 增强功能 (双表格版) 已就绪');
