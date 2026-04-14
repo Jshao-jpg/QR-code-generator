@@ -234,21 +234,49 @@ async function exportUnifiedReport() {
 // 功能4: 模板下载 & 导入
 // ========================
 
-function downloadUnifiedTemplate() {
-    const wb = XLSX.utils.book_new();
-    const data = [
-        ['DN No. (送货单号)', 'Vendor ID (供应商编号)', '', ''],
-        ['DN20250418001', '7016', '', ''],
-        ['', '', '', ''], // Blank row
-        ['Full PO No. (完整采购单号)', 'Qty (数量)', 'Unit (单位)', 'PN (零件编号)'], // Removed Remarks
-        ['263275-1-1', '3', 'PC', 'MT4571-01-001'],
-        ['263275-1-2', '5', 'PC', 'MT4571-01-002']
-    ];
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    ws['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 10 }, { wch: 25 }];
-    XLSX.utils.book_append_sheet(wb, ws, '导入模板');
-    XLSX.writeFile(wb, '送货单导入模板.xlsx');
-    showToast('模板下载成功');
+async function downloadUnifiedTemplate() {
+    try {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('导入模板');
+
+        // Setup columns (matching old wch)
+        worksheet.columns = [
+            { width: 25 },
+            { width: 15 },
+            { width: 10 },
+            { width: 25 }
+        ];
+
+        // Add data
+        worksheet.addRow(['DN No. (送货单号)', 'Vendor ID (供应商编号)', '', '']);
+        worksheet.addRow(['DN20250418001', '7016', '', '']);
+        worksheet.addRow(['', '', '', '']); // Blank row
+        worksheet.addRow(['Full PO No. (完整采购单号)', 'Qty (数量)', 'Unit (单位)', 'PN (零件编号)']);
+        worksheet.addRow(['263275-1-1', '3', 'PC', 'MT4571-01-001']);
+        worksheet.addRow(['263275-1-2', '5', 'PC', 'MT4571-01-002']);
+
+        // Data Validation for Unit column (Column C / Col 3) from row 5 onwards
+        for (let i = 5; i <= 1000; i++) {
+            worksheet.getCell(`C${i}`).dataValidation = {
+                type: 'list',
+                allowBlank: true,
+                formulae: ['"Kg,M,PC,ROLL,SET"'],
+                showErrorMessage: true,
+                errorTitle: '单位错误',
+                error: '请选择有效的单位',
+                showInputMessage: true,
+                promptTitle: '选择单位',
+                prompt: '请从下拉菜单中选择单位'
+            };
+        }
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        saveAs(new Blob([buffer]), '送货单导入模板.xlsx');
+        showToast('模板下载成功');
+    } catch (err) {
+        console.error(err);
+        showToast('下载模板失败', 'error');
+    }
 }
 
 function importUnifiedData(file) {

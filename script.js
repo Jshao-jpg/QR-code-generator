@@ -100,9 +100,9 @@ function validateRow(po, qty) {
     if (!poRegex.test(po)) {
         return { valid: false, message: `采购单号格式不正确: ${po} (应包含两个'-'且前后有内容)` };
     }
-    const qtyVal = parseFloat(qty);
+    const qtyVal = Number(qty);
     if (isNaN(qtyVal) || qtyVal <= 0) {
-        return { valid: false, message: `数量必须为大于0的数字: ${qty}` };
+        return { valid: false, message: `数量必须为大于0的正数: ${qty}` };
     }
     return { valid: true };
 }
@@ -213,7 +213,15 @@ function addDetailRow() {
         <td class="row-num"></td>
         <td><input type="text" class="table-input full-po-no" placeholder="如263275-1-1"></td>
         <td><input type="text" class="table-input qty" placeholder="数量"></td>
-        <td><input type="text" class="table-input unit" placeholder="如PC"></td>
+        <td>
+            <select class="table-input unit">
+                <option value="PC">PC</option>
+                <option value="Kg">Kg</option>
+                <option value="M">M</option>
+                <option value="ROLL">ROLL</option>
+                <option value="SET">SET</option>
+            </select>
+        </td>
         <td><input type="text" class="table-input unique-id" value="${id}" readonly></td>
         <td><input type="text" class="table-input pn" placeholder="零件编号"></td>
         <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
@@ -373,7 +381,9 @@ function parseUnifiedPasteData() {
             const r = addDetailRow();
             r.querySelector('.full-po-no').value = d[0] || '';
             r.querySelector('.qty').value = d[1] || '';
-            r.querySelector('.unit').value = d[2] || '';
+            let unitVal = d[2] || '';
+            if (unitVal.toUpperCase() === 'PCS') unitVal = 'PC';
+            r.querySelector('.unit').value = unitVal;
             r.querySelector('.pn').value = d[3] || '';
         });
         refreshDetailIds();
