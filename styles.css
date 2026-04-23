@@ -91,7 +91,7 @@ body::before {
 /* Container */
 .container {
     max-width: 1850px; /* Increased from 1600px to fit more columns */
-    margin: 0 auto;
+    margin: 0;         /* Align to left boundary as requested */
     padding: var(--spacing-lg);
     min-height: 100vh;
     display: flex;
@@ -678,13 +678,10 @@ body::before {
 .th-cn {
     color: var(--text-secondary);
     font-weight: 400;
-    font-size: 0.8rem;
-    margin-left: 0; /* Removed margin to compress */
-}
-
-.th-cn::before {
-    content: '/';
-    margin-right: 0; /* Removed margin to compress */
+    font-size: 0.75rem;
+    display: block;    /* Stack languages */
+    line-height: 1.2;
+    margin-top: 2px;
 }
 
 .data-table td {
@@ -706,23 +703,22 @@ body::before {
 }
 
 .qr-col {
-    width: 90px;
+    width: 110px; /* Increased as requested */
     text-align: center;
 }
 
 .action-col {
-    width: 80px;
+    width: 85px;
     text-align: center;
 }
 
 /* Specific Column Widths for Detail Table */
-.data-table th:nth-child(2) { width: 140px; } /* Full PO No */
-.data-table th:nth-child(3) { width: 80px; }  /* Qty - Restored */
-.data-table th:nth-child(4) { width: 60px; }  /* Unit - Balanced */
-.data-table th:nth-child(4) .table-input { padding-right: 4px; padding-left: 4px; } /* Even tighter for unit */
+.data-table th:nth-child(2) { width: 130px; } /* Full PO No */
+.data-table th:nth-child(3) { width: 75px; }  /* Qty */
+.data-table th:nth-child(4) { width: 85px; }  /* Unit - Increased as requested */
 .data-table th:nth-child(5) { width: 90px; }  /* Unique ID */
-.data-table th:nth-child(6) { min-width: 140px; width: 170px; } /* PN */
-.data-table th:nth-child(7), .data-table th:nth-child(8) { width: 85px; } /* Weights */
+.data-table th:nth-child(6) { min-width: 120px; width: 140px; } /* PN - Swapped: Shrunk to give room */
+.data-table th:nth-child(7), .data-table th:nth-child(8) { width: 80px; } /* Weights */
 .data-table th:nth-child(9) { width: 110px; } /* Remarks */
 
 /* Unified Header Inputs */
