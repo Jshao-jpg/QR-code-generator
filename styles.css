@@ -647,6 +647,7 @@ body::before {
     width: 100%;
     border-collapse: collapse;
     background: rgba(15, 23, 42, 0.5);
+    table-layout: fixed; /* Force respect column widths */
 }
 
 .data-table thead {
@@ -663,9 +664,11 @@ body::before {
     font-weight: 600;
     font-size: 0.9rem;
     color: var(--text-primary);
-    white-space: nowrap;
+    white-space: normal; /* Allow wrapping instead of forcing single line */
+    word-break: break-word;
     border-bottom: 1px solid var(--glass-border);
     border-right: 1px solid rgba(255, 255, 255, 0.2); /* Deepened vertical separator */
+    overflow: hidden; /* Required for table-layout:fixed */
 }
 
 .data-table th:last-child {
@@ -685,9 +688,10 @@ body::before {
 }
 
 .data-table td {
-    padding: var(--spacing-xs) 6px; 
+    padding: var(--spacing-xs) 6px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     vertical-align: middle;
+    overflow: hidden; /* Required for table-layout:fixed */
 }
 
 .data-table tbody tr:hover {
