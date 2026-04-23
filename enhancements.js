@@ -72,24 +72,25 @@ async function exportUnifiedReport() {
         
         // 1. Setup Columns (Matching template appearance, optimized for A4 print)
         worksheet.columns = [
-            { header: '', key: 'col1', width: 10.8 }, // A: 序号 (Reduced by 1/10)
-            { header: '', key: 'col2', width: 12.5 }, // B: 采购单号 (Reduced by 1/2)
-            { header: '', key: 'col3', width: 16.7 }, // C: 客户料号 (Reduced by 1/3)
-            { header: '', key: 'col4', width: 8 }, // D: 数量 (Increased from 6)
-            { header: '', key: 'col5', width: 6.7 }, // E: 单位 (Increased from 5)
-            { header: '', key: 'col6', width: 11 }, // F: 二维码 (Increased by 1/8 from 9.8)
-            { header: '', key: 'col7', width: 15 }, // G: 备注
-            { header: '', key: 'col8', width: 15 }  // H: (Info Column)
+            { header: '', key: 'col1', width: 6 }, // A: 序号
+            { header: '', key: 'col2', width: 14 }, // B: 采购单号 
+            { header: '', key: 'col3', width: 14 }, // C: 客户料号
+            { header: '', key: 'col4', width: 8 },  // D: 数量
+            { header: '', key: 'col5', width: 6 },  // E: 单位
+            { header: '', key: 'col6', width: 10 }, // F: 产品净重
+            { header: '', key: 'col7', width: 10 }, // G: 产品总重
+            { header: '', key: 'col8', width: 11 }, // H: 二维码
+            { header: '', key: 'col9', width: 12 }  // I: 备注
         ];
 
         // 2. Metadata & Titles (Rows 3-7)
-        worksheet.mergeCells('B3:F3');
+        worksheet.mergeCells('B3:G3');
         const titleCell = worksheet.getCell('B3');
         titleCell.value = 'xxxxxxxxxxxx有限公司';
         titleCell.font = { size: 16, bold: true, name: 'Microsoft YaHei' };
         titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-        worksheet.mergeCells('B4:F4');
+        worksheet.mergeCells('B4:G4');
         const subtitleCell = worksheet.getCell('B4');
         subtitleCell.value = '送货单';
         subtitleCell.font = { size: 14, bold: true, name: 'Microsoft YaHei' };
@@ -101,57 +102,50 @@ async function exportUnifiedReport() {
         const today = new Date().toISOString().split('T')[0];
 
         // Row 5
-        worksheet.getCell('A5').value = '客户名称：';
-        worksheet.getCell('B5').value = '东莞威雅利实业有限公司';
-        worksheet.getCell('B5').alignment = { horizontal: 'left' };
-        worksheet.getCell('F5').value = '送货单号：';
-        worksheet.getCell('G5').value = dnNo;
-        worksheet.getCell('G5').alignment = { horizontal: 'left' };
+        worksheet.getCell('A5').value = '客户名称：东莞威雅利实业有限公司';
+        worksheet.getCell('G5').value = '送货单号：';
+        worksheet.getCell('H5').value = dnNo;
+        worksheet.getCell('H5').alignment = { horizontal: 'left' };
 
         // Row 6
-        worksheet.getCell('A6').value = '客户地址：';
-        worksheet.getCell('B6').value = '广东省东莞市长安镇乌沙社区振安中路3号';
-        worksheet.getCell('B6').alignment = { horizontal: 'left' };
-        worksheet.getCell('F6').value = '开单日期：';
-        worksheet.getCell('G6').value = today;
-        worksheet.getCell('G6').alignment = { horizontal: 'left' };
+        worksheet.getCell('A6').value = '客户地址：广东省东莞市长安镇乌沙社区振安中路3号';
+        worksheet.getCell('G6').value = '开单日期：';
+        worksheet.getCell('H6').value = today;
+        worksheet.getCell('H6').alignment = { horizontal: 'left' };
 
         // Row 7
-        worksheet.getCell('A7').value = '联系人：';
-        worksheet.getCell('B7').value = '罗宏武';
-        worksheet.getCell('B7').alignment = { horizontal: 'left' };
-        worksheet.getCell('F7').value = '电话：';
-        worksheet.getCell('G7').value = '18688620375';
-        worksheet.getCell('G7').alignment = { horizontal: 'left' };
+        worksheet.getCell('A7').value = '联系人：  罗宏武';
+        worksheet.getCell('G7').value = '电话：';
+        worksheet.getCell('H7').value = '18688620375';
+        worksheet.getCell('H7').alignment = { horizontal: 'left' };
 
         // Align metadata labels
-        ['A5', 'A6', 'A7', 'F5', 'F6', 'F7'].forEach(addr => {
+        ['A5', 'A6', 'A7', 'G5', 'G6', 'G7', 'H5', 'H6', 'H7'].forEach(addr => {
             worksheet.getCell(addr).alignment = { horizontal: 'left' };
             worksheet.getCell(addr).font = { bold: true };
         });
 
-        // 3. Header QR (Centered roughly in G area using EMUs)
+        // 3. Header QR (Centered in H column using EMUs)
         const headerCanvas = firstHeader.querySelector('.qr-canvas');
         if (headerCanvas && headerCanvas.classList.contains('visible')) {
             const base64 = headerCanvas.toDataURL('image/png').split(',')[1];
             const imageId = workbook.addImage({ base64, extension: 'png' });
-            // nativeColOff/nativeRowOff are the ONLY foolproof ways to offset in ExcelJS without width dependency.
             worksheet.addImage(imageId, {
                 tl: { 
-                    nativeCol: 6, nativeColOff: 15 * 9525, 
-                    nativeRow: 0, nativeRowOff: 15 * 9525 
-                }, 
-                ext: { width: 70, height: 70 },
+                    nativeCol: 7, nativeColOff: 4 * 9525, 
+                    nativeRow: 0, nativeRowOff: 5 * 9525 // Reduced offset to move it up
+                },
+                ext: { width: 68, height: 68 }, // Slightly smaller to ensure fit
                 editAs: 'oneCell'
             });
         }
 
         // 4. Detail Table Headers (Row 9)
         const headerRow = worksheet.getRow(9);
-        headerRow.values = ['序号', '采购单号', '客户料号', '数量', '单位', '二维码', '备注'];
+        headerRow.values = ['序号', '采购单号', '客户料号', '数量', '单位', '产品净重', '产品总重', '二维码', '备注'];
         headerRow.height = 25;
         headerRow.eachCell((cell, colNum) => {
-            if (colNum <= 7) {
+            if (colNum <= 9) {
                 cell.font = { bold: true, name: 'Microsoft YaHei' };
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE9ECEF' } };
                 cell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -171,15 +165,18 @@ async function exportUnifiedReport() {
             const qty = row.querySelector('.qty').value.trim();
             const unit = row.querySelector('.unit').value.trim();
             const pn = row.querySelector('.pn').value.trim();
+            const netWt = row.querySelector('.net-wt').value.trim();
+            const grossWt = row.querySelector('.gross-wt').value.trim();
+            const remark = row.querySelector('.remarks').value.trim();
             const canvas = row.querySelector('.qr-canvas');
 
             if (!po && !qty) return;
 
             const dataRow = worksheet.getRow(currentRow);
-            dataRow.values = [i + 1, po, pn, qty, unit, '', ''];
+            dataRow.values = [i + 1, po, pn, qty, unit, netWt, grossWt, '', remark];
             dataRow.height = 74.5; // 二维码所在行的行高缩小4分之一 (99 -> 74.5)
             dataRow.eachCell((cell, colNum) => {
-                if (colNum <= 7) {
+                if (colNum <= 9) {
                     cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
                     cell.border = {
                         top: { style: 'thin' },
@@ -196,8 +193,8 @@ async function exportUnifiedReport() {
                 const imgId = workbook.addImage({ base64, extension: 'png' });
                 worksheet.addImage(imgId, {
                     tl: { 
-                        nativeCol: 5, nativeColOff: 4 * 9525, // F column width is ~77px now, slight margin
-                        nativeRow: currentRow - 1, nativeRowOff: 14 * 9525 // Center vertically in 74.5 point row
+                        nativeCol: 7, nativeColOff: 4 * 9525, // Column H
+                        nativeRow: currentRow - 1, nativeRowOff: 14 * 9525 
                     },
                     ext: { width: 70, height: 70 },
                     editAs: 'oneCell'
@@ -248,12 +245,12 @@ async function downloadUnifiedTemplate() {
         ];
 
         // Add data
-        worksheet.addRow(['DN No. (送货单号)', 'Vendor ID (供应商编号)', '', '']);
-        worksheet.addRow(['DN20250418001', '7016', '', '']);
-        worksheet.addRow(['', '', '', '']); // Blank row
-        worksheet.addRow(['Full PO No. (完整采购单号)', 'Qty (数量)', 'Unit (单位)', 'PN (零件编号)']);
-        worksheet.addRow(['263275-1-1', '3', 'PC', 'MT4571-01-001']);
-        worksheet.addRow(['263275-1-2', '5', 'PC', 'MT4571-01-002']);
+        worksheet.addRow(['DN No. (送货单号)', 'Vendor ID (供应商编号)', '', '', '', '', '']);
+        worksheet.addRow(['DN20250418001', '7016', '', '', '', '', '']);
+        worksheet.addRow(['', '', '', '', '', '', '']); // Blank row
+        worksheet.addRow(['Full PO No. (完整采购单号)', 'Qty (数量)', 'Unit (单位)', 'PN (零件编号)', '产品净重', '产品总重', '备注']);
+        worksheet.addRow(['263275-1-1', '3', 'PC', 'MT4571-01-001', '', '', '']);
+        worksheet.addRow(['263275-1-2', '5', 'PC', 'MT4571-01-002', '', '', '']);
 
         // Data Validation for Unit column (Column C / Col 3) from row 5 onwards
         for (let i = 5; i <= 1000; i++) {
@@ -315,8 +312,13 @@ function importUnifiedData(file) {
                     const r = addDetailRow();
                     r.querySelector('.full-po-no').value = d[0] || '';
                     r.querySelector('.qty').value = d[1] || '';
-                    r.querySelector('.unit').value = d[2] || '';
+                    let unitVal = String(d[2] || 'PC').trim();
+                    if (unitVal.toUpperCase() === 'PCS') unitVal = 'PC';
+                    r.querySelector('.unit').value = unitVal;
                     r.querySelector('.pn').value = d[3] || '';
+                    r.querySelector('.net-wt').value = d[4] || '';
+                    r.querySelector('.gross-wt').value = d[5] || '';
+                    r.querySelector('.remarks').value = d[6] || '';
                 });
                 refreshDetailIds();
             }

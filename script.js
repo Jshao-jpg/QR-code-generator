@@ -94,7 +94,7 @@ function drawQRCode(text, canvas) {
 /**
  * Validation Logic
  */
-function validateRow(po, qty) {
+function validateRow(po, qty, netWt, grossWt) {
     // 只要包含两个-且-前后都有内容就可以
     const poRegex = /^[^-]+-[^-]+-[^-]+$/;
     if (!poRegex.test(po)) {
@@ -104,6 +104,29 @@ function validateRow(po, qty) {
     if (isNaN(qtyVal) || qtyVal <= 0) {
         return { valid: false, message: `数量必须为大于0的正数: ${qty}` };
     }
+    if (!netWt || netWt.trim() === '') {
+        return { valid: false, message: `产品净重不能为空` };
+    }
+    if (!grossWt || grossWt.trim() === '') {
+        return { valid: false, message: `产品总重不能为空` };
+    }
+    
+    // 提取数字部分进行比较
+    const extractNum = (str) => {
+        const match = str.match(/(\d+(\.\d+)?)/);
+        return match ? parseFloat(match[0]) : null;
+    };
+    
+    const nVal = extractNum(netWt);
+    const gVal = extractNum(grossWt);
+    
+    if (nVal === null) return { valid: false, message: `产品净重未检测到数字: ${netWt}` };
+    if (gVal === null) return { valid: false, message: `产品总重未检测到数字: ${grossWt}` };
+    
+    if (gVal <= nVal) {
+        return { valid: false, message: `产品总重 (${gVal}) 必须大于净重 (${nVal})` };
+    }
+
     return { valid: true };
 }
 
@@ -118,11 +141,14 @@ function findDuplicates(rows) {
         const qty = row.querySelector('.qty').value.trim();
         const unit = row.querySelector('.unit').value.trim();
         const pn = row.querySelector('.pn').value.trim();
+        const netWt = row.querySelector('.net-wt').value.trim();
+        const grossWt = row.querySelector('.gross-wt').value.trim();
+        const remarks = row.querySelector('.remarks').value.trim();
         const id = row.querySelector('.unique-id').value.trim(); // 引入流水号参与查重
         
         if (!po && !qty) continue;
 
-        const key = `${po}|${qty}|${unit}|${pn}|${id}`;
+        const key = `${po}|${qty}|${unit}|${pn}|${id}|${netWt}|${grossWt}|${remarks}`;
         if (seen.has(key)) {
             return { row1: seen.get(key) + 1, row2: i + 1 };
         }
@@ -224,6 +250,9 @@ function addDetailRow() {
         </td>
         <td><input type="text" class="table-input unique-id" value="${id}" readonly></td>
         <td><input type="text" class="table-input pn" placeholder="零件编号"></td>
+        <td><input type="text" class="table-input net-wt" placeholder="产品净重"></td>
+        <td><input type="text" class="table-input gross-wt" placeholder="产品总重"></td>
+        <td><input type="text" class="table-input remarks" placeholder="备注"></td>
         <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
         <td class="action-cell">
             <div class="row-actions">
@@ -253,9 +282,11 @@ function generateAllUnifiedQRCodes() {
     for (let i = 0; i < dRows.length; i++) {
         const po = dRows[i].querySelector('.full-po-no').value.trim();
         const qty = dRows[i].querySelector('.qty').value.trim();
+        const netWt = dRows[i].querySelector('.net-wt').value.trim();
+        const grossWt = dRows[i].querySelector('.gross-wt').value.trim();
         if (!po && !qty) continue; // Skip empty rows
         
-        const validation = validateRow(po, qty);
+        const validation = validateRow(po, qty, netWt, grossWt);
         if (!validation.valid) {
             showToast(`第 ${i+1} 行明细格式错误: ${validation.message}`, 'error');
             return;
@@ -381,10 +412,13 @@ function parseUnifiedPasteData() {
             const r = addDetailRow();
             r.querySelector('.full-po-no').value = d[0] || '';
             r.querySelector('.qty').value = d[1] || '';
-            let unitVal = d[2] || '';
+            let unitVal = d[2] || 'PC'; // Default to PC if empty
             if (unitVal.toUpperCase() === 'PCS') unitVal = 'PC';
             r.querySelector('.unit').value = unitVal;
             r.querySelector('.pn').value = d[3] || '';
+            r.querySelector('.net-wt').value = d[4] || '';
+            r.querySelector('.gross-wt').value = d[5] || '';
+            r.querySelector('.remarks').value = d[6] || '';
         });
         refreshDetailIds();
     }

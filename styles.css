@@ -90,7 +90,7 @@ body::before {
 
 /* Container */
 .container {
-    max-width: 1600px;
+    max-width: 1850px; /* Increased from 1600px to fit more columns */
     margin: 0 auto;
     padding: var(--spacing-lg);
     min-height: 100vh;
@@ -658,29 +658,34 @@ body::before {
 }
 
 .data-table th {
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: var(--spacing-sm) 8px; /* Restored breathing room for headers */
     text-align: left;
     font-weight: 600;
     font-size: 0.9rem;
     color: var(--text-primary);
     white-space: nowrap;
     border-bottom: 1px solid var(--glass-border);
+    border-right: 1px solid rgba(255, 255, 255, 0.2); /* Deepened vertical separator */
+}
+
+.data-table th:last-child {
+    border-right: none;
 }
 
 .th-cn {
     color: var(--text-secondary);
     font-weight: 400;
     font-size: 0.8rem;
-    margin-left: 4px;
+    margin-left: 0; /* Removed margin to compress */
 }
 
 .th-cn::before {
     content: '/';
-    margin-right: 4px;
+    margin-right: 0; /* Removed margin to compress */
 }
 
 .data-table td {
-    padding: var(--spacing-sm);
+    padding: var(--spacing-xs) 6px; 
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     vertical-align: middle;
 }
@@ -697,14 +702,24 @@ body::before {
 }
 
 .qr-col {
-    width: 100px;
+    width: 90px;
     text-align: center;
 }
 
 .action-col {
-    width: 80px;
+    width: 70px;
     text-align: center;
 }
+
+/* Specific Column Widths for Detail Table */
+.data-table th:nth-child(2) { width: 140px; } /* Full PO No */
+.data-table th:nth-child(3) { width: 80px; }  /* Qty - Restored */
+.data-table th:nth-child(4) { width: 60px; }  /* Unit - Balanced */
+.data-table th:nth-child(4) .table-input { padding-right: 4px; padding-left: 4px; } /* Even tighter for unit */
+.data-table th:nth-child(5) { width: 90px; }  /* Unique ID */
+.data-table th:nth-child(6) { min-width: 140px; width: 170px; } /* PN */
+.data-table th:nth-child(7), .data-table th:nth-child(8) { width: 85px; } /* Weights */
+.data-table th:nth-child(9) { width: 110px; } /* Remarks */
 
 /* Unified Header Inputs */
 .unified-header-inputs {
@@ -745,7 +760,7 @@ body::before {
 /* Table Input */
 .table-input {
     width: 100%;
-    padding: 8px 12px;
+    padding: 8px 4px; /* Reduced horizontal padding from 12px */
     background: rgba(15, 23, 42, 0.6);
     border: 1px solid rgba(16, 185, 129, 0.3); /* Green faint border */
     border-radius: var(--radius-sm);
@@ -753,7 +768,7 @@ body::before {
     font-size: 0.9rem;
     transition: all var(--transition-fast);
     outline: none;
-    min-width: 100px;
+    min-width: 0; /* Removed 100px constraint */
     box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.05); /* Faint green glow */
 }
 
