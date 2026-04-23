@@ -96,7 +96,7 @@ function drawQRCode(text, canvas) {
  */
 function validateRow(po, qty, netWt, grossWt) {
     // 只要包含两个-且-前后都有内容就可以
-    const poRegex = /^[^-]+-[^-]+-[^-]+$/;
+    const poRegex = /^[^-]+-[^-]+-.+$/; /* Allow at least two dashes */
     if (!poRegex.test(po)) {
         return { valid: false, message: `采购单号格式不正确: ${po} (应包含两个'-'且前后有内容)` };
     }
@@ -198,7 +198,6 @@ function attachRowEvents(row, tbody) {
                 row.querySelectorAll('input').forEach(i => i.value = '');
                 canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
                 canvas.classList.remove('visible');
-                if (downloadBtn) downloadBtn.disabled = true;
                 if (copyBtn) copyBtn.disabled = true;
                 if (tbody === detailTableBody) refreshDetailIds();
             }
@@ -221,7 +220,6 @@ function addHeaderRow() {
         <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
         <td class="action-cell">
             <div class="row-actions">
-                <button class="action-btn download-row" title="下载" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
                 <button class="action-btn copy-row" title="复制" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
                 <button class="action-btn delete-row" title="删除"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
             </div>
@@ -256,7 +254,6 @@ function addDetailRow() {
         <td class="qr-cell"><canvas class="qr-canvas"></canvas></td>
         <td class="action-cell">
             <div class="row-actions">
-                <button class="action-btn download-row" title="下载" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
                 <button class="action-btn copy-row" title="复制" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
                 <button class="action-btn delete-row" title="删除"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
             </div>
@@ -313,7 +310,6 @@ function generateAllUnifiedQRCodes() {
             drawQRCode(content, canvas);
             canvas.classList.add('visible');
             canvas.dataset.content = content;
-            row.querySelector('.download-row').disabled = false;
             row.querySelector('.copy-row').disabled = false;
             hCount++;
         }
@@ -335,7 +331,6 @@ function generateAllUnifiedQRCodes() {
             drawQRCode(content, canvas);
             canvas.classList.add('visible');
             canvas.dataset.content = content;
-            row.querySelector('.download-row').disabled = false;
             row.querySelector('.copy-row').disabled = false;
             dCount++;
         }
