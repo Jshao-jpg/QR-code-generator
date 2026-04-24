@@ -656,5 +656,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetchGiteeConfig();
 
-    console.log('Unified QR Generator (Dual-Table) Ready.');
+    console.log('Unified QR Generator (Dual-Table) Ready - v48');
 });
