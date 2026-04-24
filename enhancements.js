@@ -101,22 +101,31 @@ async function exportUnifiedReport() {
         const dnNo = firstHeader.querySelector('.dn-no').value.trim();
         const today = new Date().toISOString().split('T')[0];
 
+        // Load dynamic metadata from Global Config (fetched from Google Sheets)
+        const DEFAULTS = {
+            clientName: '东莞威雅利实业有限公司',
+            clientAddr: '东莞市桥头镇大洲社区大洲路92号（维尔利工业园）',
+            contact: '罗宏武',
+            phone: '18688620375'
+        };
+        const config = window.globalReportConfig || DEFAULTS;
+
         // Row 5
-        worksheet.getCell('A5').value = '客户名称：东莞威雅利实业有限公司';
+        worksheet.getCell('A5').value = `客户名称：${config.clientName}`;
         worksheet.getCell('G5').value = '送货单号：';
         worksheet.getCell('H5').value = dnNo;
         worksheet.getCell('H5').alignment = { horizontal: 'left' };
 
         // Row 6
-        worksheet.getCell('A6').value = '客户地址：广东省东莞市长安镇乌沙社区振安中路3号';
+        worksheet.getCell('A6').value = `送货地址：${config.clientAddr}`;
         worksheet.getCell('G6').value = '开单日期：';
         worksheet.getCell('H6').value = today;
         worksheet.getCell('H6').alignment = { horizontal: 'left' };
 
         // Row 7
-        worksheet.getCell('A7').value = '联系人：  罗宏武';
+        worksheet.getCell('A7').value = `联系人：  ${config.contact}`;
         worksheet.getCell('G7').value = '电话：';
-        worksheet.getCell('H7').value = '18688620375';
+        worksheet.getCell('H7').value = config.phone;
         worksheet.getCell('H7').alignment = { horizontal: 'left' };
 
         // Align metadata labels

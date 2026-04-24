@@ -515,5 +515,145 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('PWA was installed');
     });
 
+    // ============================================
+    // Centralized Gitee API Config System
+    // ============================================
+    const CONFIG_PATH = 'report-config.json';
+    const DEFAULTS = {
+        clientName: '东莞威雅利实业有限公司',
+        clientAddr: '东莞市桥头镇大洲社区大洲路92号（维尔利工业园）',
+        contact: '罗宏武',
+        phone: '18688620375',
+        giteeToken: '640b36a7c6bcc58e04a585f051bfe62b', // User provided token
+        giteeRepo: '' // Should be 'owner/repo'
+    };
+    
+    window.globalReportConfig = { ...DEFAULTS };
+    let currentFileSha = null;
+
+    // Load initial settings from localStorage (for the admin's local session)
+    const localAdminSettings = JSON.parse(localStorage.getItem('adminSettings')) || {};
+    if (localAdminSettings.giteeRepo) window.globalReportConfig.giteeRepo = localAdminSettings.giteeRepo;
+    if (localAdminSettings.giteeToken) window.globalReportConfig.giteeToken = localAdminSettings.giteeToken;
+
+    async function fetchGiteeConfig() {
+        const statusEl = document.getElementById('configStatus');
+        const { giteeRepo, giteeToken } = window.globalReportConfig;
+
+        if (!giteeRepo) {
+            if (statusEl) statusEl.innerText = '○ 未配置云端仓库，使用内置默认值';
+            return;
+        }
+
+        try {
+            const url = `https://gitee.com/api/v5/repos/${giteeRepo}/contents/${CONFIG_PATH}?access_token=${giteeToken}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Repo not found or access denied');
+            
+            const data = await response.json();
+            currentFileSha = data.sha;
+            
+            // Decode Base64 (handle Unicode)
+            const jsonStr = decodeURIComponent(atob(data.content).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+            const cloudConfig = JSON.parse(jsonStr);
+            
+            window.globalReportConfig = { ...window.globalReportConfig, ...cloudConfig };
+            if (statusEl) statusEl.innerText = '● 报表配置已实时同步自 Gitee 云端';
+        } catch (err) {
+            console.error('Fetch error:', err);
+            if (statusEl) statusEl.innerText = '○ 无法同步云端，请检查 Gitee 配置或网络';
+        }
+    }
+
+    // --- Admin Modal Logic ---
+    const adminModal = document.getElementById('adminModal');
+    const closeAdmin = adminModal.querySelector('.close-admin');
+    const saveAdminBtn = document.getElementById('saveAdminBtn');
+    const logo = document.querySelector('.logo');
+    let logoClicks = 0;
+
+    // Secret Entry: Click logo 5 times
+    if (logo) {
+        logo.style.cursor = 'help';
+        logo.addEventListener('click', () => {
+            logoClicks++;
+            if (logoClicks >= 5) {
+                openAdminPanel();
+                logoClicks = 0;
+            }
+            setTimeout(() => { if (logoClicks > 0) logoClicks = 0; }, 3000);
+        });
+    }
+
+    function openAdminPanel() {
+        document.getElementById('admClientName').value = window.globalReportConfig.clientName;
+        document.getElementById('admClientAddr').value = window.globalReportConfig.clientAddr;
+        document.getElementById('admContact').value = window.globalReportConfig.contact;
+        document.getElementById('admPhone').value = window.globalReportConfig.phone;
+        document.getElementById('admGiteeRepo').value = window.globalReportConfig.giteeRepo;
+        document.getElementById('admGiteeToken').value = window.globalReportConfig.giteeToken;
+        adminModal.style.display = 'flex';
+    }
+
+    closeAdmin.addEventListener('click', () => adminModal.style.display = 'none');
+
+    saveAdminBtn.addEventListener('click', async () => {
+        const repo = document.getElementById('admGiteeRepo').value.trim();
+        const token = document.getElementById('admGiteeToken').value.trim();
+        
+        if (!repo || !token) {
+            showToast('请先填写 Gitee 仓库路径和私人令牌', 'error');
+            return;
+        }
+
+        const newData = {
+            clientName: document.getElementById('admClientName').value.trim(),
+            clientAddr: document.getElementById('admClientAddr').value.trim(),
+            contact: document.getElementById('admContact').value.trim(),
+            phone: document.getElementById('admPhone').value.trim()
+        };
+
+        saveAdminBtn.disabled = true;
+        saveAdminBtn.innerText = '同步中...';
+
+        try {
+            // Encode Base64 correctly for UTF-8
+            const contentStr = JSON.stringify(newData, null, 2);
+            const base64Content = btoa(encodeURIComponent(contentStr).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
+            
+            const url = `https://gitee.com/api/v5/repos/${repo}/contents/${CONFIG_PATH}`;
+            const payload = {
+                access_token: token,
+                content: base64Content,
+                message: 'Update report config via Admin Panel'
+            };
+            if (currentFileSha) payload.sha = currentFileSha;
+
+            const response = await fetch(url, {
+                method: currentFileSha ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error('API Sync Failed');
+
+            // Success: Update local state and storage
+            window.globalReportConfig = { ...window.globalReportConfig, ...newData, giteeRepo: repo, giteeToken: token };
+            localStorage.setItem('adminSettings', JSON.stringify({ giteeRepo: repo, giteeToken: token }));
+            
+            showToast('✅ 云端同步成功！全员已即时更新。', 'success');
+            adminModal.style.display = 'none';
+            fetchGiteeConfig(); // Refresh
+        } catch (err) {
+            console.error(err);
+            showToast('同步失败，请检查仓库路径、令牌及网络', 'error');
+        } finally {
+            saveAdminBtn.disabled = false;
+            saveAdminBtn.innerText = '立即推送到云端 (API Sync)';
+        }
+    });
+
+    fetchGiteeConfig();
+
     console.log('Unified QR Generator (Dual-Table) Ready.');
 });

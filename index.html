@@ -366,7 +366,65 @@
                 </svg>
                 如有疑问或需求更新请联系邮箱：<a href="mailto:SHZhang@wiseally.com.cn">SHZhang@wiseally.com.cn</a>
             </p>
+            <div id="configStatus" style="font-size: 10px; color: var(--text-muted); margin-top: 8px; opacity: 0.6;">
+                [正在检查云端配置...]
+            </div>
         </footer>
+    </div>
+
+    <!-- 隐藏的管理面板 (管理员专用) -->
+    <div id="adminModal" class="modal" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.9); backdrop-filter:blur(8px); align-items:center; justify-content:center;">
+        <div class="modal-content" style="background:#0f172a; border:1px solid #334155; width:90%; max-width:550px; padding:2rem; border-radius:20px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7);">
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:1px solid #1e293b; padding-bottom:1rem;">
+                <h3 style="margin:0; font-size:1.4rem; color:#38bdf8;">⚙️ 报表全局配置中心</h3>
+                <button class="close-admin" style="background:none; border:none; color:#64748b; font-size:2rem; cursor:pointer;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="background:rgba(56, 189, 248, 0.1); border-left:4px solid #38bdf8; padding:1rem; border-radius:4px; margin-bottom:1.5rem; font-size:0.85rem; color:#bae6fd;">
+                    <b>提示：</b> 此处修改将通过 Gitee API <b>同步给所有员工</b>。请谨慎操作。
+                </div>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:1.5rem;">
+                    <div>
+                        <label style="display:block; font-size:0.75rem; color:#94a3b8; margin-bottom:0.4rem;">客户名称</label>
+                        <input type="text" id="admClientName" class="table-input" style="width:100%;" placeholder="公司全称">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.75rem; color:#94a3b8; margin-bottom:0.4rem;">联系人</label>
+                        <input type="text" id="admContact" class="table-input" style="width:100%;" placeholder="姓名">
+                    </div>
+                </div>
+
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:block; font-size:0.75rem; color:#94a3b8; margin-bottom:0.4rem;">送货地址</label>
+                    <input type="text" id="admClientAddr" class="table-input" style="width:100%;" placeholder="详细地址">
+                </div>
+
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:block; font-size:0.75rem; color:#94a3b8; margin-bottom:0.4rem;">联系电话</label>
+                    <input type="text" id="admPhone" class="table-input" style="width:100%;" placeholder="手机号或座机">
+                </div>
+
+                <details style="margin-bottom:1rem; border:1px solid #1e293b; border-radius:8px; padding:10px;">
+                    <summary style="font-size:0.75rem; color:#64748b; cursor:pointer;">🔑 Gitee API 高级设置 (首次配置需填入)</summary>
+                    <div style="padding-top:10px;">
+                        <div style="margin-bottom:10px;">
+                            <label style="display:block; font-size:0.7rem; color:#475569; margin-bottom:4px;">Gitee 用户名/仓库名 (Owner/Repo)</label>
+                            <input type="text" id="admGiteeRepo" class="table-input" style="width:100%; font-size:0.8rem;" placeholder="例如: yourname/qr-generator">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:0.7rem; color:#475569; margin-bottom:4px;">Gitee 私人令牌 (Personal Access Token)</label>
+                            <input type="password" id="admGiteeToken" class="table-input" style="width:100%; font-size:0.8rem;" placeholder="填入令牌字符串">
+                        </div>
+                    </div>
+                </details>
+            </div>
+            <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:12px; margin-top:1rem;">
+                <button id="saveAdminBtn" style="background:#38bdf8; border:none; color:#0f172a; padding:10px 24px; border-radius:8px; cursor:pointer; font-weight:700; transition:all 0.2s;">
+                    立即推送到云端 (API Sync)
+                </button>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
