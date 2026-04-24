@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
         contact: '罗宏武',
         phone: '18688620375',
         giteeToken: '640b36a7c6bcc58e04a585f051bfe62b', // User provided token
-        giteeRepo: '' // Should be 'owner/repo'
+        giteeRepo: 'zsh1598/qr-delivery-config' // Hardcoded for automatic sync
     };
     
     window.globalReportConfig = { ...DEFAULTS };
@@ -546,7 +546,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const url = `https://gitee.com/api/v5/repos/${giteeRepo}/contents/${CONFIG_PATH}?access_token=${giteeToken}`;
+            // Fetch without token if none exists (works for public repos)
+            const tokenParam = giteeToken ? `?access_token=${giteeToken}` : '';
+            const url = `https://gitee.com/api/v5/repos/${giteeRepo}/contents/${CONFIG_PATH}${tokenParam}`;
             const response = await fetch(url);
             if (!response.ok) throw new Error('Repo not found or access denied');
             
@@ -561,7 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (statusEl) statusEl.innerText = '● 报表配置已实时同步自 Gitee 云端';
         } catch (err) {
             console.error('Fetch error:', err);
-            if (statusEl) statusEl.innerText = '○ 无法同步云端，请检查 Gitee 配置或网络';
+            if (statusEl) statusEl.innerText = '○ 无法同步云端，请检查网络或 Gitee 仓库设置';
         }
     }
 
@@ -671,7 +673,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.globalReportConfig = { ...window.globalReportConfig, ...newData, giteeRepo: repo, giteeToken: token };
             localStorage.setItem('adminSettings', JSON.stringify({ giteeRepo: repo, giteeToken: token }));
             
-            showToast('✅ 云端同步成功！全员已即时更新。', 'success');
+            showToast('✅ 云端同步成功！所有供应商已即时同步。', 'success');
             adminModal.style.setProperty('display', 'none', 'important');
             fetchGiteeConfig(); // Refresh
         } catch (err) {
@@ -685,5 +687,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetchGiteeConfig();
 
-    console.log('Unified QR Generator (Dual-Table) Ready - v52');
+    console.log('Unified QR Generator (Dual-Table) Ready - v53');
 });
