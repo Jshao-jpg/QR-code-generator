@@ -521,7 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const CONFIG_PATH = 'report-config.json';
     const DEFAULTS = {
         clientName: '东莞威雅利实业有限公司',
-        clientAddr: '东莞市桥头镇大洲社区大洲路92号（维尔利工业园）',
+        clientAddr: '广东省东莞市长安镇乌沙社区振安中路3号',
         contact: '罗宏武',
         phone: '18688620375',
         giteeToken: '640b36a7c6bcc58e04a585f051bfe62b', // User provided token
@@ -602,21 +602,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Link in footer
+    // Link in footer (Hidden in production)
     if (footerAdminLink) {
-        footerAdminLink.addEventListener('click', (e) => {
-            console.log('[Debug] Footer Admin Link Clicked');
-            e.preventDefault();
-            openAdminPanel();
-        });
+        footerAdminLink.style.display = 'none'; 
     }
 
-    // Logo entrance
+    // Logo entrance (Primary - 3 Clicks)
+    let logoClicks = 0;
     if (logo) {
-        logo.style.cursor = 'pointer';
+        logo.style.cursor = 'help';
         logo.addEventListener('click', (e) => {
-            console.log('[Debug] Logo Clicked');
-            openAdminPanel();
+            logoClicks++;
+            if (logoClicks >= 3) {
+                console.log('[Debug] Logo 3-clicks reached');
+                openAdminPanel();
+                logoClicks = 0;
+            }
+            // Auto reset after 3 seconds of inactivity
+            setTimeout(() => { logoClicks = 0; }, 3000);
         });
     }
 
@@ -682,5 +685,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetchGiteeConfig();
 
-    console.log('Unified QR Generator (Dual-Table) Ready - v51');
+    console.log('Unified QR Generator (Dual-Table) Ready - v52');
 });
