@@ -366,8 +366,9 @@
                 </svg>
                 如有疑问或需求更新请联系邮箱：<a href="mailto:SHZhang@wiseally.com.cn">SHZhang@wiseally.com.cn</a>
             </p>
-            <div id="configStatus" style="font-size: 10px; color: var(--text-muted); margin-top: 8px; opacity: 0.6;">
-                [正在检查云端配置...]
+            <div id="configStatus" style="font-size: 10px; color: var(--text-muted); margin-top: 8px; opacity: 0.6; display: flex; justify-content: center; align-items: center; gap: 10px;">
+                <span id="configStatusText">[正在检查云端配置...]</span>
+                <a href="javascript:void(0)" id="footerAdminLink" style="color: inherit; text-decoration: none; border-bottom: 1px dashed #444;">管理中心</a>
             </div>
         </footer>
     </div>
@@ -430,11 +431,12 @@
     <script src="script.js"></script>
     <script src="enhancements.js"></script>
     <script>
+        // 彻底清除并禁用 Service Worker (缓存模式)
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registered'))
-                    .catch(err => console.log('Service Worker registration failed: ', err));
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let registration of registrations) {
+                    registration.unregister();
+                }
             });
         }
     </script>

@@ -537,7 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (localAdminSettings.giteeToken) window.globalReportConfig.giteeToken = localAdminSettings.giteeToken;
 
     async function fetchGiteeConfig() {
-        const statusEl = document.getElementById('configStatus');
+        const statusEl = document.getElementById('configStatusText');
         const { giteeRepo, giteeToken } = window.globalReportConfig;
 
         if (!giteeRepo) {
@@ -569,16 +569,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminModal = document.getElementById('adminModal');
     const closeAdmin = adminModal.querySelector('.close-admin');
     const saveAdminBtn = document.getElementById('saveAdminBtn');
+    const footerAdminLink = document.getElementById('footerAdminLink');
     const logo = document.querySelector('.logo');
-    let logoClicks = 0;
-
-    // Secret Entry: Click logo 1 time (Temporary for setup)
-    if (logo) {
-        logo.style.cursor = 'help';
-        logo.addEventListener('click', () => {
-            openAdminPanel();
-        });
-    }
 
     function openAdminPanel() {
         document.getElementById('admClientName').value = window.globalReportConfig.clientName;
@@ -588,6 +580,20 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('admGiteeRepo').value = window.globalReportConfig.giteeRepo;
         document.getElementById('admGiteeToken').value = window.globalReportConfig.giteeToken;
         adminModal.style.display = 'flex';
+    }
+
+    // Link in footer (Visible for easier access during setup)
+    if (footerAdminLink) {
+        footerAdminLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            openAdminPanel();
+        });
+    }
+
+    // Logo entrance (Secondary)
+    if (logo) {
+        logo.style.cursor = 'pointer';
+        logo.addEventListener('click', openAdminPanel);
     }
 
     closeAdmin.addEventListener('click', () => adminModal.style.display = 'none');
