@@ -594,7 +594,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setVal('admGiteeRepo', window.globalReportConfig.giteeRepo);
             setVal('admGiteeToken', window.globalReportConfig.giteeToken);
             
-            adminModal.style.display = 'flex';
+            adminModal.style.setProperty('display', 'flex', 'important');
             console.log('[Debug] Admin Panel displayed.');
         } catch (err) {
             console.error('[Debug] Error in openAdminPanel:', err);
@@ -620,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (closeAdmin) {
-        closeAdmin.addEventListener('click', () => adminModal.style.display = 'none');
+        closeAdmin.addEventListener('click', () => adminModal.style.setProperty('display', 'none', 'important'));
     }
 
     saveAdminBtn.addEventListener('click', async () => {
@@ -668,7 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('adminSettings', JSON.stringify({ giteeRepo: repo, giteeToken: token }));
             
             showToast('✅ 云端同步成功！全员已即时更新。', 'success');
-            adminModal.style.display = 'none';
+            adminModal.style.setProperty('display', 'none', 'important');
             fetchGiteeConfig(); // Refresh
         } catch (err) {
             console.error(err);
@@ -681,5 +681,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetchGiteeConfig();
 
-    console.log('Unified QR Generator (Dual-Table) Ready - v49');
+    console.log('Unified QR Generator (Dual-Table) Ready - v50');
 });

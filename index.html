@@ -374,7 +374,7 @@
     </div>
 
     <!-- 隐藏的管理面板 (管理员专用) -->
-    <div id="adminModal" class="modal" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.9); backdrop-filter:blur(8px); align-items:center; justify-content:center;">
+    <div id="adminModal" class="modal" style="display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.95); align-items:center; justify-content:center;">
         <div class="modal-content" style="background:#0f172a; border:1px solid #334155; width:90%; max-width:550px; padding:2rem; border-radius:20px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7);">
             <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:1px solid #1e293b; padding-bottom:1rem;">
                 <h3 style="margin:0; font-size:1.4rem; color:#38bdf8;">⚙️ 报表全局配置中心</h3>
@@ -428,8 +428,8 @@
         </div>
     </div>
 
-    <script src="script.js?v=49"></script>
-    <script src="enhancements.js?v=49"></script>
+    <script src="script.js?v=50"></script>
+    <script src="enhancements.js?v=50"></script>
     <script>
         // 彻底清除并禁用 Service Worker (缓存模式)
         if ('serviceWorker' in navigator) {
