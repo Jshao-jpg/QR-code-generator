@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qr-generator-v46';
+const CACHE_NAME = 'qr-generator-v47';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
