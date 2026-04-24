@@ -567,36 +567,61 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Admin Modal Logic ---
     const adminModal = document.getElementById('adminModal');
-    const closeAdmin = adminModal.querySelector('.close-admin');
+    const closeAdmin = adminModal ? adminModal.querySelector('.close-admin') : null;
     const saveAdminBtn = document.getElementById('saveAdminBtn');
     const footerAdminLink = document.getElementById('footerAdminLink');
     const logo = document.querySelector('.logo');
 
     function openAdminPanel() {
-        document.getElementById('admClientName').value = window.globalReportConfig.clientName;
-        document.getElementById('admClientAddr').value = window.globalReportConfig.clientAddr;
-        document.getElementById('admContact').value = window.globalReportConfig.contact;
-        document.getElementById('admPhone').value = window.globalReportConfig.phone;
-        document.getElementById('admGiteeRepo').value = window.globalReportConfig.giteeRepo;
-        document.getElementById('admGiteeToken').value = window.globalReportConfig.giteeToken;
-        adminModal.style.display = 'flex';
+        console.log('[Debug] Attempting to open Admin Panel...');
+        try {
+            if (!adminModal) {
+                console.error('[Debug] Error: adminModal element not found!');
+                alert('系统错误：找不到管理面板组件，请检查 index.html 是否更新完整。');
+                return;
+            }
+            
+            // Set values safely
+            const setVal = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.value = val || '';
+            };
+            
+            setVal('admClientName', window.globalReportConfig.clientName);
+            setVal('admClientAddr', window.globalReportConfig.clientAddr);
+            setVal('admContact', window.globalReportConfig.contact);
+            setVal('admPhone', window.globalReportConfig.phone);
+            setVal('admGiteeRepo', window.globalReportConfig.giteeRepo);
+            setVal('admGiteeToken', window.globalReportConfig.giteeToken);
+            
+            adminModal.style.display = 'flex';
+            console.log('[Debug] Admin Panel displayed.');
+        } catch (err) {
+            console.error('[Debug] Error in openAdminPanel:', err);
+        }
     }
 
-    // Link in footer (Visible for easier access during setup)
+    // Link in footer
     if (footerAdminLink) {
         footerAdminLink.addEventListener('click', (e) => {
+            console.log('[Debug] Footer Admin Link Clicked');
             e.preventDefault();
             openAdminPanel();
         });
     }
 
-    // Logo entrance (Secondary)
+    // Logo entrance
     if (logo) {
         logo.style.cursor = 'pointer';
-        logo.addEventListener('click', openAdminPanel);
+        logo.addEventListener('click', (e) => {
+            console.log('[Debug] Logo Clicked');
+            openAdminPanel();
+        });
     }
 
-    closeAdmin.addEventListener('click', () => adminModal.style.display = 'none');
+    if (closeAdmin) {
+        closeAdmin.addEventListener('click', () => adminModal.style.display = 'none');
+    }
 
     saveAdminBtn.addEventListener('click', async () => {
         const repo = document.getElementById('admGiteeRepo').value.trim();
@@ -656,5 +681,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetchGiteeConfig();
 
-    console.log('Unified QR Generator (Dual-Table) Ready - v48');
+    console.log('Unified QR Generator (Dual-Table) Ready - v49');
 });
