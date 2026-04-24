@@ -572,12 +572,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const logo = document.querySelector('.logo');
     let logoClicks = 0;
 
-    // Secret Entry: Click logo 5 times
+    // Secret Entry: Click logo 3 times
     if (logo) {
         logo.style.cursor = 'help';
         logo.addEventListener('click', () => {
             logoClicks++;
-            if (logoClicks >= 5) {
+            if (logoClicks >= 3) {
                 openAdminPanel();
                 logoClicks = 0;
             }
