@@ -566,8 +566,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Admin Modal Logic ---
-    const adminModal = document.getElementById('adminModal');
-    const closeAdmin = adminModal ? adminModal.querySelector('.close-admin') : null;
+    const adminModal = document.getElementById('zshSecretPortal');
+    const closeAdmin = adminModal ? adminModal.querySelector('.close-zsh') : null;
     const saveAdminBtn = document.getElementById('saveAdminBtn');
     const footerAdminLink = document.getElementById('footerAdminLink');
     const logo = document.querySelector('.logo');
@@ -576,8 +576,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('[Debug] Attempting to open Admin Panel...');
         try {
             if (!adminModal) {
-                console.error('[Debug] Error: adminModal element not found!');
-                alert('系统错误：找不到管理面板组件，请检查 index.html 是否更新完整。');
+                console.error('[Debug] Error: zshSecretPortal element not found!');
+                alert('系统错误：找不到管理组件，请检查 index.html。');
                 return;
             }
             
@@ -596,6 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             adminModal.style.setProperty('display', 'flex', 'important');
             console.log('[Debug] Admin Panel displayed.');
+            alert('⚙️ 管理中心已开启，请查看屏幕。');
         } catch (err) {
             console.error('[Debug] Error in openAdminPanel:', err);
         }
@@ -681,5 +682,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetchGiteeConfig();
 
-    console.log('Unified QR Generator (Dual-Table) Ready - v50');
+    console.log('Unified QR Generator (Dual-Table) Ready - v51');
 });

@@ -373,12 +373,12 @@
         </footer>
     </div>
 
-    <!-- 隐藏的管理面板 (管理员专用) -->
-    <div id="adminModal" class="modal" style="display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.95); align-items:center; justify-content:center;">
-        <div class="modal-content" style="background:#0f172a; border:1px solid #334155; width:90%; max-width:550px; padding:2rem; border-radius:20px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7);">
-            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:1px solid #1e293b; padding-bottom:1rem;">
-                <h3 style="margin:0; font-size:1.4rem; color:#38bdf8;">⚙️ 报表全局配置中心</h3>
-                <button class="close-admin" style="background:none; border:none; color:#64748b; font-size:2rem; cursor:pointer;">&times;</button>
+    <!-- 终极管理面板 (独立ID，绕过拦截) -->
+    <div id="zshSecretPortal" style="display:none; position:fixed; z-index:999999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.98); align-items:center; justify-content:center; overflow-y:auto;">
+        <div style="background:#0f172a; border:2px solid #38bdf8; width:95%; max-width:600px; padding:30px; border-radius:24px; box-shadow:0 0 100px rgba(56,189,248,0.3); margin:auto; position:relative;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #1e293b; padding-bottom:15px;">
+                <h3 style="margin:0; font-size:1.5rem; color:#38bdf8; font-family:sans-serif;">🛡️ 全局同步管理中心</h3>
+                <button class="close-zsh" style="background:none; border:none; color:#64748b; font-size:2.5rem; cursor:pointer; line-height:1;">&times;</button>
             </div>
             <div class="modal-body">
                 <div style="background:rgba(56, 189, 248, 0.1); border-left:4px solid #38bdf8; padding:1rem; border-radius:4px; margin-bottom:1.5rem; font-size:0.85rem; color:#bae6fd;">
@@ -428,8 +428,8 @@
         </div>
     </div>
 
-    <script src="script.js?v=50"></script>
-    <script src="enhancements.js?v=50"></script>
+    <script src="script.js?v=51"></script>
+    <script src="enhancements.js?v=51"></script>
     <script>
         // 彻底清除并禁用 Service Worker (缓存模式)
         if ('serviceWorker' in navigator) {
