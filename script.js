@@ -110,22 +110,6 @@ function validateRow(po, qty, netWt, grossWt) {
     if (!grossWt || grossWt.trim() === '') {
         return { valid: false, message: `产品总重不能为空` };
     }
-    
-    // 提取数字部分进行比较
-    const extractNum = (str) => {
-        const match = str.match(/(\d+(\.\d+)?)/);
-        return match ? parseFloat(match[0]) : null;
-    };
-    
-    const nVal = extractNum(netWt);
-    const gVal = extractNum(grossWt);
-    
-    if (nVal === null) return { valid: false, message: `产品净重未检测到数字: ${netWt}` };
-    if (gVal === null) return { valid: false, message: `产品总重未检测到数字: ${grossWt}` };
-    
-    if (gVal <= nVal) {
-        return { valid: false, message: `产品总重 (${gVal}) 必须大于净重 (${nVal})` };
-    }
 
     return { valid: true };
 }
@@ -687,5 +671,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetchGiteeConfig();
 
-    console.log('Unified QR Generator (Dual-Table) Ready - v53');
+    console.log('Unified QR Generator (Dual-Table) Ready - v54');
 });
